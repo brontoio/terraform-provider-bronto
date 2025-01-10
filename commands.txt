@@ -1,0 +1,18 @@
+go mod init terraform-provider-bronto
+touch main.go
+mkdir -p internal/provider
+
+tfplugingen-framework scaffold provider \
+  --name bronto \
+  --output-dir ./internal/provider
+
+go mod tidy
+go install .
+
+# Create a new resource
+tfplugingen-framework scaffold resource --name user --output-dir ./internal/provider
+
+
+tfplugingen-openapi generate --config ./generator_config.yml --output ./provider_code_spec.json ./openapi.yaml
+
+tfplugingen-framework generate all --input provider_code_spec.json --output internal/provider
