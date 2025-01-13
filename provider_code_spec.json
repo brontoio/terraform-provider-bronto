@@ -1,0 +1,77 @@
+{
+	"provider": {
+		"name": "bronto"
+	},
+	"resources": [
+		{
+			"name": "user",
+			"schema": {
+				"attributes": [
+					{
+						"name": "email",
+						"string": {
+							"computed_optional_required": "required",
+							"description": "The user's email address"
+						}
+					},
+					{
+						"name": "first_name",
+						"string": {
+							"computed_optional_required": "required",
+							"description": "The user's first name",
+							"validators": [
+								{
+									"custom": {
+										"imports": [
+											{
+												"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+											}
+										],
+										"schema_definition": "stringvalidator.LengthBetween(1, 255)"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "last_name",
+						"string": {
+							"computed_optional_required": "required",
+							"description": "The user's last name",
+							"validators": [
+								{
+									"custom": {
+										"imports": [
+											{
+												"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+											}
+										],
+										"schema_definition": "stringvalidator.LengthBetween(1, 255)"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "roles",
+						"list": {
+							"computed_optional_required": "required",
+							"element_type": {
+								"string": {}
+							},
+							"description": "A list of role ids"
+						}
+					},
+					{
+						"name": "id",
+						"string": {
+							"computed_optional_required": "computed",
+							"description": "The unique identifier for the user"
+						}
+					}
+				]
+			}
+		}
+	],
+	"version": "0.1"
+}

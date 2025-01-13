@@ -1,0 +1,4123 @@
+openapi: 3.0.2
+info:
+  title: BrontoBytes API
+  license:
+    name: Commercial
+  version: 1.0.0
+servers:
+- url: https://api.eu.brontobytes.io
+- url: https://api.us.brontobytes.io
+security:
+- ApiKeyAuth: []
+- BearerAuth: []
+paths:
+  /api-keys:
+    get:
+      tags:
+      - api-keys
+      summary: Retrieve a list of API keys
+      operationId: listApiKeys
+      responses:
+        "200":
+          description: A list of API keys
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_keys:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ApiKey'
+        "403":
+          description: Forbidden - The user does not have the privileges to view API
+            keys
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+      - api-keys
+      summary: Create a new API key
+      operationId: createApiKey
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateApiKeyRequest'
+        required: true
+      responses:
+        "201":
+          description: API keys is created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKey'
+        "400":
+          description: Bad Request - The body in the request is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - The user does not have the privileges to create
+            new api keys
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api-keys/{apiKeyId}:
+    delete:
+      tags:
+      - api-keys
+      summary: Delete an API key
+      operationId: deleteApiKey
+      parameters:
+      - name: apiKeyId
+        in: path
+        description: The ID of the API key to delete
+        required: true
+        schema:
+          type: string
+          format: uuid
+        example: 41521f35-1b06-41f0-9cdc-9a938b5739d1
+      responses:
+        "204":
+          description: API key deleted successfully
+        "403":
+          description: Forbidden - The user does not have the privileges to delete
+            API keys
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Not Found - The API key is not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      tags:
+      - api-keys
+      summary: Update an API key
+      operationId: updateApiKey
+      parameters:
+      - name: apiKeyId
+        in: path
+        description: The ID of the API key to update
+        required: true
+        schema:
+          type: string
+          format: uuid
+        example: 41521f35-1b06-41f0-9cdc-9a938b5739d1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateApiKeyRequest'
+        required: true
+      responses:
+        "200":
+          description: API key deleted successfully
+        "403":
+          description: Forbidden - The user does not have the privileges to update
+            the API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Not Found - The API key is not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users:
+    get:
+      tags:
+      - users
+      summary: Retrieve a list of users
+      operationId: listUsers
+      responses:
+        "200":
+          description: A list of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+        "403":
+          description: Forbidden - The user does not have the privileges to list users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+      - users
+      summary: Create a new user
+      operationId: createUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+        required: true
+      responses:
+        "201":
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        "400":
+          description: Bad Request - The body in the request is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - The user does not have the privileges to create
+            new users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/{userId}:
+    get:
+      tags:
+      - users
+      summary: Get a single user by ID
+      operationId: getUserById
+      parameters:
+      - name: userId
+        in: path
+        description: The unique identifier of the user to retrieve
+        required: true
+        schema:
+          type: string
+          format: uuid
+        example: 41521f35-1b06-41f0-9cdc-9a938b5739d1
+      responses:
+        "200":
+          description: User details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        "403":
+          description: Forbidden - The user does not have the privileges to retrieve
+            user details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Not Found - The User is not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+      - users
+      summary: Delete a user by ID
+      operationId: deleteUserById
+      parameters:
+      - name: userId
+        in: path
+        description: Unique identifier of the user to delete
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: User deleted successfully
+        "403":
+          description: Forbidden - The user does not have the privileges to delete
+            users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Not Found - The User is not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      tags:
+      - users
+      summary: Updates a user
+      operationId: updateUser
+      parameters:
+      - name: userId
+        in: path
+        description: Unique identifier of the user to update
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+        required: true
+      responses:
+        "200":
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        "400":
+          description: Bad Request - The body in the request is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - The user does not have the privileges to new users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /search:
+    get:
+      tags:
+      - search
+      summary: Execute a search query and return results
+      operationId: search
+      parameters:
+      - name: from
+        in: query
+        description: The ids of the log which to search from.
+        required: false
+        schema:
+          type: string
+          format: uuid
+        example:
+        - 550e8400-e29b-41d4-a716-446655440000
+        - fc87cb32-b785-4db2-af98-297480f128a1
+      - name: time_range
+        in: query
+        description: |
+          The time period for which to query data. Time range supported is from milliseconds to years e.g.  \"Last 800 milliseconds\", \"Last 10 seconds\", \"Last 3 weeks\"
+        required: false
+        schema:
+          type: string
+        example: Last 2 days
+      - name: from_ts
+        in: query
+        description: The starting time (unix time) for which to query data.
+        required: false
+        schema:
+          type: integer
+        example: 1709251200000
+      - name: to_ts
+        in: query
+        description: The ending time (unix time) for which to query data.
+        required: false
+        schema:
+          type: integer
+        example: 1711390455601
+      - name: where
+        in: query
+        description: The where parameter is used to filter the results of your query.
+        required: false
+        schema:
+          type: string
+        example: ip=10.0.0.1
+      - name: select
+        in: query
+        description: |
+          The select parameter indicates the columns that should appear in the results table.  The following columns are always available\: @time, @origin & @raw
+        required: false
+        schema:
+          type: string
+        example: message
+      - name: groups
+        in: query
+        description: The group parameter is used by statistical queries to apply calculations
+          to individual groups of log events.
+        required: false
+        schema:
+          type: string
+        example:
+        - user
+        - ip
+      - name: limit
+        in: query
+        description: The maximum number of events that a query should return.
+        required: false
+        schema:
+          maximum: 6666
+          minimum: 1
+          type: integer
+          default: 100
+        example: 50
+      - name: num_of_slices
+        in: query
+        description: The number of buckets to break time series results up into.
+        required: false
+        schema:
+          type: integer
+          default: 10
+        example: 50
+      - name: from_sequence
+        in: query
+        description: The starting sequence for which to query data. This is more granular
+          than a timestamp but also requires a fromTs param.
+        required: false
+        schema:
+          type: integer
+        example: 111721913
+      - name: most_recent_first
+        in: query
+        description: Flag to indicate order in which results should be returned.
+        required: false
+        schema:
+          type: boolean
+        example: true
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  explain:
+                    $ref: '#/components/schemas/QueryExplain'
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/QueryResult'
+                  events:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Event'
+                  groups:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Group'
+                  groups_series:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/GroupSeriesItem'
+                  metadata:
+                    $ref: '#/components/schemas/QueryMetadata'
+                  totals:
+                    type: object
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        "400":
+          description: Bad Request - The body in the request is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /context:
+    get:
+      tags:
+      - context
+      summary: Retrieve contextual information for a given sequence and log
+      operationId: getContext
+      parameters:
+      - name: from
+        in: query
+        description: The ids of the log which to search from.
+        required: true
+        schema:
+          type: string
+          format: uuid
+        example: 550e8400-e29b-41d4-a716-446655440000
+      - name: timestamp
+        in: query
+        description: The timestamp for the event for which context is being retrieved
+        required: true
+        schema:
+          type: integer
+        example: 1709251200000
+      - name: limit
+        in: query
+        description: The maximum number of events that a query should return.
+        required: false
+        schema:
+          type: integer
+        example: 50
+      - name: from_sequence
+        in: query
+        description: The sequence for the event for which context is being retrieved.
+        required: false
+        schema:
+          type: integer
+          example: 111721913
+      - name: fromSequence
+        in: query
+        description: The sequence for the event for which context is being retrieved.
+        required: false
+        schema:
+          type: integer
+          example: 111721913
+      - name: direction
+        in: query
+        description: Enum to indicate if results before or after should be retrieved.
+        required: false
+        schema:
+          type: string
+          enum:
+          - both
+          - after
+          - before
+        example: both
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  explain:
+                    $ref: '#/components/schemas/QueryExplain'
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/QueryResult'
+        "400":
+          description: Bad Request - The body in the request is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /logs:
+    get:
+      tags:
+      - logs
+      summary: Retrieve a list of logs
+      operationId: listLogs
+      responses:
+        "200":
+          description: A list of log entries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  logs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Log'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+      - logs
+      summary: Create a new log
+      operationId: createLog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLogRequest'
+        required: true
+      responses:
+        "201":
+          description: Log created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Log'
+        "400":
+          description: Bad Request - The body in the request is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /logs/{logId}:
+    get:
+      tags:
+      - logs
+      summary: Get a single log by ID
+      operationId: getLogById
+      parameters:
+      - name: logId
+        in: path
+        description: The unique identifier of the log to retrieve
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: Log details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Log'
+        "404":
+          description: Not Found - The logId in the request is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+      - logs
+      summary: Update a log by ID
+      operationId: updateLog
+      parameters:
+      - name: logId
+        in: path
+        description: The unique identifier of the log to update
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLogRequest'
+        required: true
+      responses:
+        "200":
+          description: Log updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Log'
+        "400":
+          description: Bad Request - The body in the request is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Not Found - The log is not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+      - logs
+      summary: Delete a log by ID
+      operationId: deleteLog
+      parameters:
+      - name: logId
+        in: path
+        description: The unique identifier of the log to delete
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: Log deleted successfully
+        "404":
+          description: Not Found - The log is not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /logsets:
+    get:
+      tags:
+      - logsets
+      summary: Retrieve a list of logsets
+      operationId: listLogSets
+      responses:
+        "200":
+          description: A list of logsets
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/LogsetLog'
+                  x-additionalPropertiesName: logset
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /monitors:
+    get:
+      tags:
+      - monitors
+      summary: Retrieve monitors
+      description: Retrieves the list of currently configured monitors
+      operationId: listMonitors
+      responses:
+        "200":
+          description: A list of currently configured monitors
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  monitors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Monitor'
+        "403":
+          description: Forbidden - The user does not have the privileges to view monitors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+      - monitors
+      summary: Create a new monitor
+      description: Create a monitor to be notified when a log events based condition
+        is met
+      operationId: createMonitor
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMonitorRequest'
+        required: true
+      responses:
+        "201":
+          description: Monitor is created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Monitor'
+        "400":
+          description: Bad Request - The body in the request is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - The user does not have the privileges to create
+            new monitor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /monitors/{monitorId}:
+    get:
+      tags:
+      - monitors
+      summary: Get a monitor
+      operationId: getMonitor
+      parameters:
+      - name: monitorId
+        in: path
+        description: The ID of the monitor to retrieve
+        required: true
+        schema:
+          type: string
+          format: uuid
+        example: 41521f35-1b06-41f0-9cdc-9a938b5739d1
+      responses:
+        "200":
+          description: Monitor retrieved successfully
+        "403":
+          description: Forbidden - The user does not have the privileges to retrieve
+            a monitor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Not Found - The monitor is not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+      - monitors
+      summary: Update a monitor
+      description: update an existing monitor
+      operationId: updateMonitor
+      parameters:
+      - name: monitorId
+        in: path
+        description: The ID of the monitor to update
+        required: true
+        schema:
+          type: string
+          format: uuid
+        example: 41521f35-1b06-41f0-9cdc-9a938b5739d1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMonitorRequest'
+        required: true
+      responses:
+        "200":
+          description: Monitor is successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Monitor'
+        "400":
+          description: Bad Request - The body in the request is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - The user does not have the privileges to update
+            a monitor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Not Found - The monitor is not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+      - monitors
+      summary: Delete a monitor
+      operationId: deleteMonitor
+      parameters:
+      - name: monitorId
+        in: path
+        description: The ID of the monitor to delete
+        required: true
+        schema:
+          type: string
+          format: uuid
+        example: 41521f35-1b06-41f0-9cdc-9a938b5739d1
+      responses:
+        "204":
+          description: Monitor deleted successfully
+        "403":
+          description: Forbidden - The user does not have the privileges to delete
+            a monitor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Not Found - The monitor is not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /roles:
+    get:
+      summary: Retrieve roles
+      description: Retrieves a list of roles along with their permissions
+      operationId: listRoles
+      responses:
+        "200":
+          description: A list of roles along with their permissions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roles:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Role'
+              example:
+                roles:
+                - role_id: Admin
+                  role_type: API
+                  display_name: Administrator
+                  description: Administrator Role
+                  permissions:
+                  - group_name: ApiKey
+                    group_display_name: API Key Management
+                    name: api_keys_read
+                    display_name: Read API Keys
+                    description: List all API Keys in your organization.
+                    type: read
+                    restricted: false
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /subscriptions:
+    get:
+      tags:
+      - subscriptions
+      summary: Retrieves a list of subscriptions
+      operationId: listSubscriptions
+      responses:
+        "200":
+          description: A list of subscriptions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionsResponse'
+        "403":
+          description: Forbidden - The user does not have the privileges to view subscriptions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /subscriptions/{subscriptionId}:
+    get:
+      tags:
+      - subscriptions
+      summary: Get a subscription by its ID
+      operationId: getSubscriptionById
+      parameters:
+      - name: subscriptionId
+        in: path
+        description: The ID of the subscription to retrieve
+        required: true
+        schema:
+          type: string
+        example: sub_1Oa1p3CDr2gXABzgjokTd9YF
+      responses:
+        "200":
+          description: Subscription details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        "400":
+          description: Bad Request - The body in the request is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - The user does not have the privileges to view subscriptions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Not Found - The subscriptionId in the request is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /top-keys:
+    get:
+      tags:
+      - top-keys
+      summary: Get the top keys for a specific log id
+      operationId: getTopKeysById
+      parameters:
+      - name: logId
+        in: query
+        description: "The ids of the logs to retrieve the top keys for. \nIf no log\
+          \ ids are specified, then top keys are returned for all logs.\n"
+        required: false
+        schema:
+          type: string
+          format: uuid
+        example: 550e8400-e29b-41d4-a716-446655440000
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  $ref: '#/components/schemas/TopKeys'
+        "400":
+          description: Bad Request - The body in the request is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Not Found - The logId in the request is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /lbm/{lbm_id}:
+    get:
+      summary: Get a time series log based metric by its ID
+      operationId: getLbmById
+      parameters:
+      - name: lbm_id
+        in: path
+        description: The ID of the LBM to retrieve
+        required: true
+        schema:
+          type: string
+      - name: time_range
+        in: query
+        description: |
+          The time period for which to query data. Either `time_range` or both `from_ts` and `to_ts`  must be provided. If `time_range` is provided, it will take precedence
+        required: false
+        schema:
+          type: string
+        example: '''Last 20 minutes'', ''Last 2 hours'', ''Last 3 days'''
+      - name: from_ts
+        in: query
+        description: |
+          The starting unix time in milliseconds for which to query data. Either `time_range` or both  `from_ts` and `to_ts` must be provided. If `time_range` is provided, it will take precedence.
+        required: false
+        schema:
+          type: integer
+        example: 1709251200000
+      - name: to_ts
+        in: query
+        description: |
+          The ending unix time in milliseconds for which to query data. Either `time_range` or both `from_ts` and `to_ts` must be provided. If `time_range` is provided, it will take precedence.
+        required: false
+        schema:
+          type: integer
+        example: 1711390455601
+      responses:
+        "200":
+          description: LBM is retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricItem'
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /dashboards:
+    get:
+      tags:
+      - dashboards
+      summary: Get all dashboards for an organisation
+      operationId: listDashboards
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dashboards:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Dashboard'
+        "400":
+          description: Bad Request - The body in the request is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Not Found - The dashboardId in the request is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+      - dashboards
+      summary: Create a dashboard
+      operationId: createDashboard
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDashboardRequest'
+        required: true
+      responses:
+        "201":
+          description: Dashboard created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dashboard'
+        "400":
+          description: Bad Request - The body in the request is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /dashboards/{dashboardId}:
+    get:
+      tags:
+      - dashboards
+      summary: Get a single Dashboard by ID
+      operationId: getDashboard
+      parameters:
+      - name: dashboardId
+        in: path
+        description: The unique identifier of the Dashboard to retrieve
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: Dashboard details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dashboard'
+        "404":
+          description: Not Found - The dashboardId in the request is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+      - dashboards
+      summary: Delete a dashboard by ID
+      operationId: deleteDashboard
+      parameters:
+      - name: dashboardId
+        in: path
+        description: The ID of the dashboard to delete
+        required: true
+        schema:
+          type: string
+        example: xyz
+      responses:
+        "204":
+          description: Successful response
+        "404":
+          description: Not Found - The dashboardId in the request is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      tags:
+      - dashboards
+      summary: Update a dashboard by ID
+      operationId: updateDashboard
+      parameters:
+      - name: dashboardId
+        in: path
+        description: The unique identifier of the Dashboard to update
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: Dashboard updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dashboard'
+        "404":
+          description: Not Found - The dashboardId in the request is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /dashboards/{dashboardId}/lbm:
+    get:
+      tags:
+      - legacy_dashboards
+      summary: Get LBM associated with a dashboard
+      operationId: getDashboardLbm
+      parameters:
+      - name: dashboardId
+        in: path
+        description: The unique identifier of the dashboard to retrieve
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: LBM is retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListMetricsResponse'
+        "404":
+          description: Not Found - The dashboardId in the request is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /dashboards/{dashboardId}/meta/lbm:
+    get:
+      tags:
+      - legacy_dashboards
+      summary: Get all LBMs associated with a dashboard
+      operationId: getDashboardMetaLbms
+      parameters:
+      - name: dashboardId
+        in: path
+        description: The unique identifier of the dashboard to retrieve
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: LBMs associated with dashboard are retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListMetricsResponse'
+        "404":
+          description: Not Found - The dashboardId in the request is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+      - legacy_dashboards
+      summary: Create an LBM which is associated with a dashboard
+      operationId: createLbm
+      parameters:
+      - name: dashboardId
+        in: path
+        description: The unique identifier of the dashboard to update
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLbmRequest'
+        required: true
+      responses:
+        "201":
+          description: LBM created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricItem'
+        "400":
+          description: Bad Request - The body in the request is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+      - legacy_dashboards
+      summary: Delete all LBMs associated with a dashboard
+      operationId: deleteAllLbms
+      parameters:
+      - name: dashboardId
+        in: path
+        description: The unique identifier of the dashboard to update
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: LBMs deleted successfully
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /dashboards/{dashboardId}/meta/lbm/{lbmId}:
+    delete:
+      tags:
+      - legacy_dashboards
+      summary: Delete an LBM which is associated with a dashboard
+      operationId: deleteLbm
+      parameters:
+      - name: dashboardId
+        in: path
+        description: The unique identifier of the dashboard to update
+        required: true
+        schema:
+          type: string
+      - name: lbmId
+        in: path
+        description: The unique identifier of the lbm to delete
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: LBM successfully deleted
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      tags:
+      - legacy_dashboards
+      summary: Update an LBM which is associated with a dashboard
+      operationId: updateLbm
+      parameters:
+      - name: dashboardId
+        in: path
+        description: The unique identifier of the dashboard to update
+        required: true
+        schema:
+          type: string
+      - name: lbmId
+        in: path
+        description: The unique identifier of the lbm to update
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLbmRequest'
+        required: true
+      responses:
+        "200":
+          description: LBM update successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricItem'
+        "400":
+          description: Bad Request - The body in the request is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /dashboards/{dashboardId}/layout:
+    get:
+      tags:
+      - legacy_dashboards
+      summary: Get a dashboard layout
+      operationId: getDashboardLayout
+      parameters:
+      - name: dashboardId
+        in: path
+        description: The unique identifier of the dashboard to retrieve
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Dashboard layout successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardLayoutResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+      - legacy_dashboards
+      summary: Update a dashboard layout
+      operationId: updateDashboardLayout
+      parameters:
+      - name: dashboardId
+        in: path
+        description: The unique identifier of the dashboard to update
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDashboardLayoutRequest'
+        required: true
+      responses:
+        "204":
+          description: LBM successfully deleted
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /usage:
+    get:
+      tags:
+      - usage
+      summary: Get the usage over a period of time
+      operationId: getUsage
+      parameters:
+      - name: time_range
+        in: query
+        description: The period to calculate the usage for.
+        required: false
+        schema:
+          type: string
+        example: Last 2 days
+      - name: timeRange
+        in: query
+        description: The period to calculate the usage for.
+        required: false
+        deprecated: true
+        schema:
+          type: string
+        example: Last 2 days
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListMetricsResponse'
+        "400":
+          description: Bad Request - The time range in the request is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /integrations/webhooks:
+    get:
+      tags:
+      - integrations
+      - webhooks
+      summary: Get all Webhook Integration Resources for an organisation
+      operationId: listWebhookIntegrations
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  integrations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WebhookIntegrationResource'
+        "400":
+          description: Bad Request - The body in the request is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+      - integrations
+      - webhooks
+      summary: Create a Webhook Integration Resource
+      operationId: createWebhookIntegration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWebhookIntegrationResourceRequest'
+        required: true
+      responses:
+        "201":
+          description: Resource created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookIntegrationResource'
+        "400":
+          description: Bad Request - The body in the request is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      x-internal: true
+  /integrations/webhooks/{webhook_id}:
+    put:
+      tags:
+      - integrations
+      - webhooks
+      summary: Update a webhook Integration Resource
+      operationId: updateWebhookIntegration
+      parameters:
+      - name: webhook_id
+        in: path
+        description: The unique identifier of webhook ID to update
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateWebhookIntegrationRequest'
+        required: true
+      responses:
+        "200":
+          description: Webhook successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookIntegrationResource'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+      - integrations
+      - webhooks
+      summary: Delete a webhook Integration Resource
+      operationId: deleteWebhookIntegration
+      parameters:
+      - name: webhook_id
+        in: path
+        description: The unique identifier of the webhook ID to delete
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Webhook Integration Resource successfully deleted
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /integrations/aws:
+    get:
+      tags:
+      - integrations
+      summary: Get all Integration Resources for an organisation
+      operationId: listAWSIntegrations
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  integrations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AWSIntegrationResource'
+        "400":
+          description: Bad Request - The body in the request is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+      - integrations
+      summary: Create an AWS Integration Resource
+      operationId: createAWSIntegration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAWSIntegrationResourceRequest'
+        required: true
+      responses:
+        "201":
+          description: Resource created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AWSIntegrationResource'
+        "400":
+          description: Bad Request - The body in the request is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /integrations/aws/{resource_id}:
+    delete:
+      tags:
+      - integrations
+      summary: Delete an AWS Integration Resource
+      operationId: deleteAWSIntegration
+      parameters:
+      - name: resource_id
+        in: path
+        description: The unique identifier of the resource ID to delete
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: AWS Integration Resource successfully deleted
+        "429":
+          description: Too Many Request - Fair usage limits exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error - An error occurred on the server side.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /saved-searches:
+    get:
+      tags:
+      - saved-searches
+      summary: Retrieve a list of saved searches
+      operationId: listSavedSearches
+      responses:
+        "200":
+          description: A list of saved searches
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  saved_searches:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SavedSearch'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+      - saved-searches
+      summary: Create a new saved search
+      operationId: createSavedSearch
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSavedSearchRequest'
+        required: true
+      responses:
+        "201":
+          description: Saved search created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedSearch'
+        "400":
+          description: Bad Request - The body in the request is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /saved-searches/{savedSearchId}:
+    delete:
+      tags:
+      - saved-searches
+      summary: Delete a saved search by ID
+      operationId: deleteSavedSearchById
+      parameters:
+      - name: savedSearchId
+        in: path
+        description: The unique identifier of the saved search to delete
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: Saved search deleted successfully
+        "403":
+          description: Forbidden - The user does not have the privileges to delete
+            saved searches
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Not Found - The saved search is not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      tags:
+      - saved-searches
+      summary: Update a saved search by ID
+      operationId: updateSavedSearch
+      parameters:
+      - name: savedSearchId
+        in: path
+        description: The unique identifier of the saved search to update
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSavedSearchRequest'
+        required: true
+      responses:
+        "200":
+          description: Saved search updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedSearch'
+        "400":
+          description: Bad Request - The request body is invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - The user does not have the privileges to update
+            saved searches
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Not Found - The saved search is not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /exports:
+    get:
+      tags:
+      - exports
+      summary: Retrieve a list of exports
+      operationId: listExports
+      responses:
+        "200":
+          description: A list of exports
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  exports:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Export'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+      - export
+      summary: Create a new export
+      operationId: createExport
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExportRequest'
+        required: true
+      responses:
+        "201":
+          description: Export created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Export'
+        "400":
+          description: Bad Request - The body in the request is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /exports/{exportId}:
+    get:
+      tags:
+      - exports
+      summary: Retrieve an export by ID
+      operationId: getExportById
+      parameters:
+      - name: exportId
+        in: path
+        description: The unique identifier of the export to retrieve
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: Export retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Export'
+        "404":
+          description: Not Found - The export is not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+      - exports
+      summary: Delete an export by ID
+      operationId: deleteExportById
+      parameters:
+      - name: exportId
+        in: path
+        description: The unique identifier of the export to delete
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: Export deleted successfully
+        "403":
+          description: Forbidden - The user does not have the privileges to delete
+            exports
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Not Found - The export is not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    ApiKey:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier for the API key
+          format: uuid
+        name:
+          type: string
+          description: The name of the API key
+          example: Production API Key
+        created_at:
+          type: integer
+          description: The timestamp when the API key was created
+          format: int64
+          example: 1710948395538
+        api_key:
+          type: string
+          description: The first 8 characters of the API key. Note its not possible
+            to retrieve the key after creation time.
+          example: 2ad85149
+        roles:
+          type: object
+          description: A list of api key role ids
+          example:
+          - SearchApi
+          - IngestionApi
+    ErrorResponse:
+      required:
+      - code
+      - correlation_id
+      - message
+      type: object
+      properties:
+        code:
+          minimum: 200
+          type: integer
+          description: The http response code.
+          format: int32
+        correlation_id:
+          type: string
+          description: The unique identifier for the request.
+        message:
+          type: string
+    CreateApiKeyRequest:
+      required:
+      - name
+      - roles
+      type: object
+      properties:
+        name:
+          maxLength: 255
+          minLength: 1
+          type: string
+          description: The name of the API key to create
+          example: Production API Key
+        roles:
+          type: object
+          description: A list of api key role ids
+          example:
+          - IngestionApi
+    UpdateApiKeyRequest:
+      type: object
+      properties:
+        name:
+          maxLength: 255
+          minLength: 1
+          type: string
+          description: The new name for the API key
+          example: Production API Key
+        roles:
+          type: object
+          description: A list of api key role ids
+          example:
+          - IngestionApi
+    User:
+      required:
+      - email
+      - first_name
+      - id
+      - last_name
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier for the user
+          format: uuid
+        first_name:
+          type: string
+          description: The user's first name
+          example: John
+        last_name:
+          type: string
+          description: The user's last name
+          example: Doe
+        email:
+          type: string
+          description: The user's email address
+          format: email
+          example: john@company.com
+        roles:
+          type: object
+          description: A list of role ids
+          example:
+          - ReadOnly
+          - Standard
+    CreateUserRequest:
+      required:
+      - email
+      - first_name
+      - last_name
+      - roles
+      type: object
+      properties:
+        first_name:
+          maxLength: 255
+          minLength: 1
+          type: string
+          description: The user's first name
+          example: Alice
+        last_name:
+          maxLength: 255
+          minLength: 1
+          type: string
+          description: The user's last name
+          example: Smith
+        email:
+          type: string
+          description: The user's email address
+          format: email
+          example: alice@company.com
+        roles:
+          type: array
+          items:
+            type: string
+          description: A list of role ids
+          example:
+            - "Admin"
+            - "Standard"
+            - "ReadOnly"
+    UpdateUserRequest:
+      type: object
+      properties:
+        first_name:
+          maxLength: 255
+          minLength: 1
+          type: string
+          description: The user's first name
+          example: Alice
+        last_name:
+          maxLength: 255
+          minLength: 1
+          type: string
+          description: The user's last name
+          example: Smith
+        roles:
+          type: array
+          items:
+            type: string
+          description: A list of role ids
+          example: ["Admin", "Standard", "ReadOnly"]
+    QueryExplain:
+      type: object
+      properties:
+        Execution time (millis):
+          type: string
+          description: Measure of time taken to execute the query.
+          example: "353"
+    QueryResult:
+      type: object
+      properties:
+        '@time':
+          type: string
+          description: Human readable timestamp of when this log event was ingested
+          example: 2024-03-27 10:25:40.632 UTC
+        '@sequence':
+          type: string
+          description: The sequence number of this log event. Note sequence numbers
+            are only unique within a millisecond timestamp.
+          example: "111721913"
+        '@raw':
+          type: string
+          description: The full log line as received
+          example: 10.0.0.1 - - [27/Mar/2024:10:54:39 +0000] "GET / HTTP/1.1" 200
+            721 "-" "ELB-HealthChecker/2.0"
+        '@context':
+          type: string
+          description: A url that can be used to get the log events before and after
+            this log event.
+          format: uri
+          example: https://api.brontobytes.io/context?sequence=111721913&limit=1&from=23746675-7022-4985-bd74-4af9eba58d72&timestamp=1711535140632&direction=both
+        metadata:
+          type: object
+          properties:
+            logId:
+              type: string
+              description: The unique identifier of the log this log event came from
+              format: uuid
+            timestamp:
+              type: integer
+              description: The timestamp of when this log event was ingested
+              example: 1711535140632
+            sequence:
+              type: integer
+              description: The sequence number of this log event. Note sequence numbers
+                are only unique within a millisecond timestamp.
+              example: 111721913
+            origin:
+              type: string
+              description: The identity of the sender if this log event.
+              example: 10.0.0.1
+            context:
+              type: string
+              description: A url that can be used to get the log events before and
+                after this log event.
+              format: uri
+              example: https://api.brontobytes.io/context?sequence=111721913&limit=1&from=23746675-7022-4985-bd74-4af9eba58d72&timestamp=1711535140632&direction=both
+            selectedKeys:
+              type: object
+              description: The selected columns displayed in this result
+              example:
+                '@time': 2024-03-27 10:25:40.632 UTC
+            unselectedKeys:
+              type: object
+              description: The available columns not displayed in this result
+              example:
+                id: message_0
+                current_time: 1711535140
+    Event:
+      type: object
+      properties:
+        '@raw':
+          type: string
+          description: The log message as received
+          example: 10.0.108.203 - - [27/May/2024:23:47:27 +0000] "GET / HTTP/1.1"
+            200 675 "-" "ELB-HealthChecker/2.0"
+        '@time':
+          type: string
+          description: |
+            Human readable time of when this event was ingested into Bronto Bytes. The time is in UTC and in the format "YYYY-MM-DD HH:MM:SS.MMM UTC"
+          example: 2024-05-27 23:26:34.331 UTC
+        message_kvs:
+          type: object
+          description: Key-value pairs extracted from the log message
+          example:
+            method: GET
+            statusCode: "200"
+            path: /
+        attributes:
+          type: object
+          description: |
+            Additional details attached to the log event, such as resource attributes, environment settings, or custom attributes defined by the user.
+          example:
+            $private_ip: 10.0.22.230
+            $environment: production
+        metadata:
+          type: object
+          properties:
+            service_id:
+              type: string
+              description: The unique identifier of the service this event came from.
+              format: uuid
+              example: 23746675-7022-4985-bd74-4af9eba58d72
+            timestamp:
+              type: integer
+              description: Unix timestamp in milliseconds of when this event was ingested.
+              example: 1716853347801
+            sequence:
+              type: integer
+              description: The sequence number of this log event. Note sequence numbers
+                are only unique within a millisecond timestamp.
+              example: 111721913
+            context:
+              type: string
+              description: A url that can be used to get the events before and after
+                this event.
+              format: uri
+              example: |
+                "https://api.eu.brontobytes.io/context?sequence=213&from=37bdf479-7c95-4e81-982a-25d0680fb602&timestamp=1716853354331&direction=both"
+          description: The metadata of the event
+    Group:
+      type: object
+      properties:
+        group:
+          type: string
+          description: The groupby key or keys used by this group
+          example: '[US]'
+        count:
+          type: integer
+          description: The number of times this group appeared in the logs
+          format: int64
+          example: 124
+        stat:
+          type: string
+          description: The statistical function applied to the group
+          example: average(bytes)
+        value:
+          type: number
+          description: Overall value of the statistical function applied
+          format: double
+          example: 50325.25
+        timeseries:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupTimeSeries'
+    GroupSeriesItem:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The group name
+          example: host123
+        count:
+          type: integer
+          description: The number of times this group appeared in the logs
+          format: int64
+          example: 124
+        stat:
+          type: string
+          description: The statistical function applied to the group
+          example: average(duration_millis)
+        value:
+          type: number
+          description: Overall value of the statistical function applied
+          format: double
+          example: 50325.25
+        series_resolution_ms:
+          type: number
+          description: The resolution of the timeseries in milliseconds
+          format: int64
+          example: 60000
+        timeseries:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupTimeSeries'
+        groups_series:
+          type: array
+          description: The subgroups of the group (multi group-by)
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: The group name
+                example: host123
+              count:
+                type: integer
+                description: The number of times this group appeared in the logs
+                format: int64
+                example: 124
+              stat:
+                type: string
+                description: The statistical function applied to the group
+                example: average(duration_millis)
+              value:
+                type: number
+                description: Overall value of the statistical function applied
+                format: double
+                example: 50325.25
+              series_resolution_ms:
+                type: number
+                description: The resolution of the timeseries in milliseconds
+                format: int64
+                example: 60000
+              timeseries:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GroupTimeSeries'
+    QueryMetadata:
+      type: object
+      properties:
+        select:
+          type: array
+          description: The columns that were selected in the query request, and which
+            appear in the results table.
+          example:
+          - host
+          - status
+          - method
+          items:
+            type: string
+    Pagination:
+      type: object
+      properties:
+        next_page_url:
+          type: string
+          description: The url to fetch the next set of results
+          format: uri
+    Log:
+      required:
+      - log
+      - log_id
+      - logset
+      type: object
+      properties:
+        logset:
+          type: string
+          description: The name of the log set
+          example: demo
+        log:
+          type: string
+          description: The name of the log
+          example: firewall
+        log_id:
+          type: string
+          description: The unique identifier of the log
+          format: uuid
+    CreateLogRequest:
+      required:
+      - log
+      type: object
+      properties:
+        logset:
+          maxLength: 255
+          type: string
+          description: The name of the log set
+          example: demo
+        log:
+          maxLength: 255
+          minLength: 1
+          type: string
+          description: The name of the log
+          example: http
+    UpdateLogRequest:
+      required:
+      - log
+      type: object
+      properties:
+        logset:
+          maxLength: 255
+          type: string
+          description: The name of the log set
+          example: demo
+        log:
+          maxLength: 255
+          minLength: 1
+          type: string
+          description: The name of the log
+          example: http
+    LogsetLog:
+      required:
+      - log
+      - log_id
+      type: object
+      properties:
+        log:
+          type: string
+          description: The name of the log
+          example: firewall
+        log_id:
+          type: string
+          description: The unique identifier of the log
+          format: uuid
+    Monitor:
+      required:
+      - actions
+      - comparison_operator
+      - created_at
+      - filter
+      - id
+      - logs
+      - name
+      - stat
+      - status
+      - threshold
+      - window
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier for the monitor
+          format: uuid
+        name:
+          maxLength: 255
+          minLength: 1
+          type: string
+          description: The name of the monitor
+          example: High Error Rate
+        description:
+          maxLength: 4000
+          type: string
+          description: Extra contextual information to add to the monitor.
+          example: Average response time is over 1 seconds in the last 20 minutes
+        filter:
+          maxLength: 255
+          type: string
+          description: The filter used to identify events to monitor on.
+          example: response_time and response_status=200
+        key:
+          maxLength: 50
+          type: string
+          description: The key that identifies the numeric value to monitor
+          example: response_time
+        stat:
+          type: string
+          description: The function to compute (MIN, MAX, COUNT, SUM, AVG)
+          example: AVG
+          enum:
+          - MIN
+          - MAX
+          - COUNT
+          - SUM
+          - AVG
+          - AVERAGE
+        comparison_operator:
+          type: string
+          description: the comparison operator of the monitor (ABOVE, ABOVE_OR_EQUAL,
+            BELOW, BELOW_OR_EQUAL, EQUAL, NOT_EQUAL)
+          example: ABOVE
+          enum:
+          - BELOW
+          - BELOW_OR_EQUAL
+          - ABOVE
+          - ABOVE_OR_EQUAL
+          - EQUAL
+          - NOT_EQUAL
+        threshold:
+          type: number
+          description: the threshold value of the monitor
+          format: double
+          example: 1000
+        window:
+          type: integer
+          description: the time window, expressed in minutes, to evaluate the monitor
+          example: 20
+        logs:
+          maxItems: 20
+          minItems: 1
+          uniqueItems: true
+          type: array
+          description: The list of log identifiers to filter for matching events
+          items:
+            type: string
+            format: uuid
+        actions:
+          maxItems: 10
+          minItems: 1
+          type: array
+          description: The list on actions (notifications) to take when the monitor
+            fires or resolves
+          items:
+            $ref: '#/components/schemas/Action'
+        created_at:
+          type: integer
+          description: The timestamp when the monitor was created
+          format: int64
+          example: 1710948395538
+        status:
+          type: string
+          description: The status of the monitor
+          example: OK
+          enum:
+          - ALERT
+          - OK
+        last_trigger_ts:
+          type: integer
+          description: The timestamp of the last time the monitor fired
+          format: int64
+          example: 1710948395538
+    CreateMonitorRequest:
+      required:
+      - actions
+      - comparison_operator
+      - filter
+      - logs
+      - name
+      - stat
+      - threshold
+      - window
+      type: object
+      properties:
+        name:
+          maxLength: 255
+          minLength: 1
+          type: string
+          description: The name of the monitor
+          example: High Error Rate
+        description:
+          maxLength: 4000
+          minLength: 1
+          type: string
+          description: Extra contextual information to add to the monitor.
+          example: Average response time is over 1 seconds in the last 20 minutes
+        filter:
+          maxLength: 255
+          type: string
+          description: The filter used to identify events to monitor on.
+          example: response_time and response_status=200
+        key:
+          maxLength: 50
+          type: string
+          description: The key that identifies the numeric value to monitor
+          example: response_time
+        stat:
+          type: string
+          description: The function to compute (MIN, MAX, COUNT, SUM, AVG)
+          example: AVG
+          enum:
+          - MIN
+          - MAX
+          - COUNT
+          - SUM
+          - AVG
+          - AVERAGE
+        comparison_operator:
+          type: string
+          description: the comparison operator of the monitor (ABOVE, ABOVE_OR_EQUAL,
+            BELOW, BELOW_OR_EQUAL, EQUAL, NOT_EQUAL)
+          example: ABOVE
+          enum:
+          - BELOW
+          - BELOW_OR_EQUAL
+          - ABOVE
+          - ABOVE_OR_EQUAL
+          - EQUAL
+          - NOT_EQUAL
+        threshold:
+          type: number
+          description: the threshold value of the monitor
+          example: 1000
+        window:
+          type: integer
+          description: the time window, expressed in minutes, to evaluate the monitor
+          example: 20
+        logs:
+          maxItems: 20
+          minItems: 1
+          uniqueItems: true
+          type: array
+          description: The list of log identifiers to filter for matching events
+          items:
+            type: string
+            format: uuid
+        actions:
+          maxItems: 10
+          minItems: 1
+          type: array
+          description: The list on actions (notifications) to take when the monitor
+            fires or resolves
+          items:
+            $ref: '#/components/schemas/Action'
+    UpdateMonitorRequest:
+      required:
+      - actions
+      - comparison_operator
+      - filter
+      - logs
+      - name
+      - stat
+      - threshold
+      - window
+      type: object
+      properties:
+        name:
+          maxLength: 255
+          minLength: 1
+          type: string
+          description: The name of the monitor
+          example: High Error Rate
+        description:
+          maxLength: 4000
+          minLength: 1
+          type: string
+          description: Extra contextual information to add to the monitor.
+          example: Average response time is over 1 seconds in the last 20 minutes
+        filter:
+          maxLength: 255
+          type: string
+          description: The filter used to identify events to monitor on.
+          example: response_time and response_status=200
+        key:
+          maxLength: 50
+          type: string
+          description: The key that identifies the numeric value to monitor
+          example: response_time
+        stat:
+          type: string
+          description: The function to compute (MIN, MAX, COUNT, SUM, AVG)
+          example: AVG
+          enum:
+          - MIN
+          - MAX
+          - COUNT
+          - SUM
+          - AVG
+          - AVERAGE
+        comparison_operator:
+          type: string
+          description: the comparison operator of the monitor (ABOVE, ABOVE_OR_EQUAL,
+            BELOW, BELOW_OR_EQUAL, EQUAL, NOT_EQUAL)
+          example: ABOVE
+          enum:
+          - BELOW
+          - BELOW_OR_EQUAL
+          - ABOVE
+          - ABOVE_OR_EQUAL
+          - EQUAL
+          - NOT_EQUAL
+        threshold:
+          type: number
+          description: the threshold value of the monitor
+          example: 1000
+        window:
+          type: integer
+          description: the time window, expressed in minutes, to evaluate the monitor
+          example: 20
+        logs:
+          maxItems: 20
+          minItems: 1
+          uniqueItems: true
+          type: array
+          description: The list of log identifiers to filter for matching events
+          items:
+            type: string
+            format: uuid
+        actions:
+          maxItems: 10
+          minItems: 1
+          type: array
+          description: The list on actions (notifications) to take when the monitor
+            fires or resolves
+          items:
+            $ref: '#/components/schemas/Action'
+    Role:
+      type: object
+      properties:
+        role_id:
+          type: string
+          description: The ID of the role
+        role_type:
+          type: string
+          description: The entity which the roles can be applied to. USER | API
+        display_name:
+          type: string
+          description: The display name of the role
+        description:
+          type: string
+          description: Description of the role
+        permissions:
+          type: array
+          items:
+            type: object
+            properties:
+              group_name:
+                type: string
+                description: The group name of the permission
+              group_display_name:
+                type: string
+                description: The display name of the permission group
+              name:
+                type: string
+                description: The name of the permission
+              display_name:
+                type: string
+                description: The display name of the permission
+              description:
+                type: string
+                description: Description of the permission
+              type:
+                type: string
+                description: The type of permission (e.g., read, write, delete)
+              restricted:
+                type: boolean
+                description: Indicates if the permission is restricted
+    SubscriptionsResponse:
+      required:
+      - subscriptions
+      type: object
+      properties:
+        subscriptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Subscription'
+    Subscription:
+      required:
+      - current_period_end
+      - current_period_start
+      - ingestion_limit_bytes_monthly
+      - interval_count
+      - interval_frq
+      - product
+      - status
+      type: object
+      properties:
+        product:
+          $ref: '#/components/schemas/Product'
+        status:
+          type: string
+          example: canceled
+          enum:
+          - incomplete
+          - incomplete_expired
+          - trialing
+          - active
+          - past_due
+          - canceled
+          - unpaid
+          - paused
+        ingestion_limit_bytes_monthly:
+          type: integer
+          description: The total amount of bytes that can be ingested per month
+          example: 10000000000000
+        current_period_start:
+          type: integer
+          description: Unix timestamp for start of the current period (in epoc time)
+            that the subscription has been invoiced for.
+          example: 1709645437
+        current_period_end:
+          type: integer
+          description: Unix timestamp for end of the current period that the subscription
+            has been invoiced for.
+          example: 1717594237
+        interval_frq:
+          type: string
+          example: month
+          enum:
+          - month
+          - year
+        interval_count:
+          type: integer
+          description: The number of intervals (specified in the interval_frq attribute)
+            between subscription billings. For example, interval_frq=month and interval_count=3
+            bills every 3 months.
+          example: 3
+    TopKeys:
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/TopKeysPerLog'
+    MetricItem:
+      required:
+      - filter
+      - graph_type
+      - id
+      - key
+      - logs
+      - name
+      - series
+      - stat
+      - total_count
+      - total_value
+      type: object
+      properties:
+        id:
+          type: string
+          example: 550e8400-e29b-41d4-a716-446655440000#home#usage
+        name:
+          type: string
+          example: Usage
+        filter:
+          type: string
+        stat:
+          type: string
+          example: BYTES
+        key:
+          type: string
+        logs:
+          type: array
+          items:
+            type: string
+            format: uuid
+        aux:
+          type: object
+          description: Auxiliary data for the metric
+          example:
+            region: us-west-1
+            service: s3
+        graph_type:
+          type: string
+          example: line
+        total_count:
+          type: integer
+          example: 58351920
+        total_value:
+          type: number
+          example: 18911006109
+        is_exact:
+          type: boolean
+          description: true if the series result is exact, false if it is an approximation
+          example: true
+        series:
+          type: array
+          items:
+            $ref: '#/components/schemas/SeriesItem'
+        groupSeries:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupSeries'
+    Dashboard:
+      required:
+      - name
+      type: object
+      properties:
+        dashboard_id:
+          type: string
+          example: xyz
+        name:
+          type: string
+          description: The name of the Dashboard.
+        created:
+          type: string
+          description: The created date of the dashboard (epoch)
+          example: "1711726414"
+        widgets:
+          type: array
+          items:
+            $ref: '#/components/schemas/Widget'
+        layout:
+          type: object
+          properties:
+            metric_ids:
+              type: object
+              description: List of associated lbms
+              example:
+              - x
+              - "y"
+              - x
+          example:
+            metric_ids:
+            - x
+            - "y"
+            - x
+    CreateDashboardRequest:
+      required:
+      - name
+      type: object
+      properties:
+        dashboard_id:
+          type: string
+          example: xyz
+        name:
+          type: string
+          description: The name of the Dashboard.
+          example: ExamplePlan
+        created:
+          type: string
+          description: The created date of the dashboard (epoch)
+          example: "1711726414"
+        layout:
+          type: object
+          properties:
+            metric_ids:
+              type: object
+              description: List of associated lbms
+              example:
+              - x
+              - "y"
+              - x
+          example:
+            metric_ids:
+            - x
+            - "y"
+            - x
+      example:
+        name: name
+    ListMetricsResponse:
+      type: object
+      properties:
+        meta:
+          $ref: '#/components/schemas/Meta'
+        result:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricItem'
+    CreateLbmRequest:
+      required:
+      - logs
+      - name
+      type: object
+      properties:
+        name:
+          maxLength: 64
+          minLength: 1
+          type: string
+          description: The name of the dashboard meta to create
+          example: My Dashboard
+        logs:
+          type: array
+          items:
+            type: string
+            format: uuid
+        filter:
+          type: string
+        stat:
+          type: string
+          example: BYTES
+        key:
+          type: string
+        group_keys:
+          type: array
+          example:
+          - host
+          - status
+          items:
+            type: string
+        aux:
+          type: object
+          description: Auxiliary data for the metric
+          example:
+            region: us-west-1
+            service: s3
+    UpdateLbmRequest:
+      type: object
+      properties:
+        name:
+          maxLength: 64
+          minLength: 1
+          type: string
+          description: The name of the dashboard meta to create
+          example: My Dashboard
+        graph_type:
+          type: string
+          example: line
+    DashboardLayoutResponse:
+      required:
+      - metric_ids
+      type: object
+      properties:
+        metric_ids:
+          type: array
+          items:
+            type: string
+    UpdateDashboardLayoutRequest:
+      type: object
+      properties:
+        metric_ids:
+          type: array
+          items:
+            type: string
+    WebhookIntegrationResource:
+      required:
+      - id
+      - name
+      - url
+      type: object
+      properties:
+        id:
+          type: string
+          description: A unique identifier for the integration resource
+          example: 550e8400-e29b-41d4-a716-446655440000
+        name:
+          maxLength: 255
+          minLength: 1
+          type: string
+          description: The webhook name
+          example: my-slack-webhook
+        url:
+          maxLength: 255
+          minLength: 10
+          type: string
+          description: The webhook url
+          example: https://hooks.slack.com/triggers/xxxx/123456745
+        custom_headers:
+          maxProperties: 10
+          type: object
+          additionalProperties:
+            type: string
+          description: The custom headers to include in the webhook request
+          example:
+            x-bronto-api-key: xxxxx
+    CreateWebhookIntegrationResourceRequest:
+      required:
+      - name
+      - url
+      type: object
+      properties:
+        name:
+          maxLength: 255
+          minLength: 1
+          type: string
+          description: The webhook name
+          example: my-slack-webhook
+        url:
+          maxLength: 255
+          minLength: 10
+          type: string
+          description: The webhook url
+          example: https://hooks.slack.com/triggers/xxxx/123456745
+        custom_headers:
+          maxProperties: 10
+          type: object
+          additionalProperties:
+            type: string
+          description: The custom headers to include in the webhook request
+          example:
+            x-bronto-api-key: xxxxx
+    UpdateWebhookIntegrationRequest:
+      required:
+      - name
+      - url
+      type: object
+      properties:
+        name:
+          maxLength: 255
+          minLength: 1
+          type: string
+          description: The webhook name
+          example: my-slack-webhook
+        url:
+          maxLength: 255
+          minLength: 10
+          type: string
+          description: The webhook url
+          example: https://hooks.slack.com/triggers/xxxx/123456745
+        custom_headers:
+          maxProperties: 10
+          type: object
+          additionalProperties:
+            type: string
+          description: The custom headers to include in the webhook request
+          example:
+            x-bronto-api-key: xxxxx
+    AWSIntegrationResource:
+      required:
+      - resource
+      - resource_id
+      type: object
+      properties:
+        resource_id:
+          type: string
+          description: A unique identifier for the integration resource
+          example: 550e8400-e29b-41d4-a716-446655440000
+        resource:
+          maxLength: 20
+          minLength: 5
+          type: string
+          description: The integration resource
+          example: ab0123456789
+        resource_region:
+          maxLength: 20
+          minLength: 5
+          type: string
+          description: The region of the resource
+          example: eu-west-1
+    CreateAWSIntegrationResourceRequest:
+      required:
+      - resource
+      type: object
+      properties:
+        resource:
+          maxLength: 20
+          minLength: 5
+          type: string
+          description: The integration resource
+          example: bronto-s3-access-logs-eu-west-1
+        resource_region:
+          maxLength: 20
+          minLength: 5
+          type: string
+          description: The region of the resource
+          example: eu-west-1
+    SavedSearch:
+      required:
+      - log_ids
+      - name
+      - search_details
+      type: object
+      properties:
+        saved_search_id:
+          type: string
+          description: The unique identifier for the saved search.
+        user_id:
+          type: string
+          description: The ID of the user who created or owns the saved search.
+        created_by:
+          type: string
+          description: The name or identifier of the user who created the saved search.
+        name:
+          type: string
+          description: The name of the saved search.
+        search_details:
+          type: object
+          additionalProperties:
+            type: string
+          description: A map of search params used in the saved search.
+        log_ids:
+          type: array
+          description: List of IDs of logs associated with the saved search.
+          items:
+            type: string
+        created_at:
+          type: integer
+          description: The timestamp when the saved search was created.
+          format: int64
+        modified_at:
+          type: integer
+          description: The timestamp when the saved search was last modified.
+          format: int64
+    CreateSavedSearchRequest:
+      required:
+      - created_by
+      - log_ids
+      - name
+      - search_details
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the saved search.
+        created_by:
+          type: string
+          description: The name or identifier of the user who created the saved search.
+        search_details:
+          type: object
+          additionalProperties:
+            type: string
+          description: A map of search params used in the saved search.
+        log_ids:
+          type: array
+          description: List of IDs of logs associated with the saved search.
+          items:
+            type: string
+    UpdateSavedSearchRequest:
+      required:
+      - log_ids
+      - name
+      - search_details
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the saved search.
+        search_details:
+          type: object
+          additionalProperties:
+            type: string
+          description: A map of search params used in the saved search.
+        log_ids:
+          type: array
+          description: List of IDs of logs associated with the saved search.
+          items:
+            type: string
+    Export:
+      required:
+      - bytes
+      - events
+      - export_id
+      - location
+      - org_id
+      - progress
+      - search_details
+      - status
+      type: object
+      properties:
+        export_id:
+          type: string
+          description: The unique identifier for the export.
+        org_id:
+          type: string
+          description: The ID of the organization associated with the export.
+        progress:
+          type: integer
+          description: The progress percentage of the export.
+        status:
+          type: string
+          description: The current status of the export.
+          enum:
+          - CREATED
+          - IN_PROGRESS
+          - COMPLETE
+        bytes:
+          type: integer
+          description: The size of the export in bytes.
+        events:
+          type: integer
+          description: The number of events in the export.
+        location:
+          type: string
+          description: The location where the export is stored.
+        search_details:
+          type: object
+          additionalProperties:
+            type: string
+          description: A map of search parameters used for the export.
+        created_at:
+          type: integer
+          description: The timestamp when the export was created.
+          format: int64
+        modified_at:
+          type: integer
+          description: The timestamp when the export was last modified.
+          format: int64
+    CreateExportRequest:
+      required:
+      - search_details
+      type: object
+      properties:
+        search_details:
+          type: object
+          additionalProperties:
+            type: string
+          description: A map of search parameters used for the export.
+    GroupTimeSeries:
+      type: object
+      properties:
+        '@timestamp':
+          type: string
+          description: Unix timestamp in milliseconds
+          example: "1711535140632"
+        count:
+          type: integer
+          description: Count of the group key in the given timeslice
+          format: int64
+          example: 40
+        value:
+          type: number
+          description: The value of the statistical function for that group in the
+            given timeslice
+          format: double
+          example: 35.625
+    Action:
+      required:
+      - type
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - EMAIL
+          - INTEGRATION
+        email:
+          maxLength: 255
+          minLength: 0
+          type: string
+        integration_id:
+          maxLength: 50
+          minLength: 0
+          type: string
+    Product:
+      required:
+      - active
+      - description
+      - name
+      - plan_limits
+      - product_id
+      type: object
+      properties:
+        product_id:
+          type: string
+          example: prod_QfgKLv7QiZadum
+        name:
+          type: string
+          description: The name of the product that the subscription is for.
+          example: ExamplePlan
+        description:
+          type: string
+          description: The description of the product that the subscription is for.
+          example: $ per GB per month
+        active:
+          type: boolean
+          description: When false this product is discontinued and its not possible
+            to create new subscriptions for this product. Existing subscriptions are
+            unaffected.
+          example: true
+        plan_limits:
+          type: object
+          properties:
+            search_quota:
+              type: string
+              description: The allowable number of bytes that can be searched per
+                month.
+              example: "100000"
+    TopKeysPerLog:
+      required:
+      - rank
+      type: object
+      properties:
+        rank:
+          type: integer
+          description: A count representing the number of times this key was in the
+            sampled data.
+          example: 5
+        type:
+          type: string
+          description: A description of the type of data contained in the key.
+          example: STRING | NUMBER | BOOLEAN
+        field_type:
+          type: string
+          description: A description of the source of the given key.
+          example: Tags | Message KVP
+        values:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/TopKeyValue'
+    SeriesItem:
+      type: object
+      additionalProperties:
+        type: string
+    GroupSeries:
+      type: object
+      properties:
+        group:
+          type: string
+          description: The group name
+          example: host
+        totalCount:
+          type: integer
+          description: The total count of the group
+          example: 112358
+        totalValue:
+          type: number
+          description: The total statistical value of the group. For example the average
+            latency in milliseconds.
+          example: 1.891
+        series:
+          type: array
+          items:
+            $ref: '#/components/schemas/Series'
+    Widget:
+      type: object
+      properties:
+        id:
+          type: string
+          example: cc5d32d7-2bd5-4ede-b86e-0a06db8db877
+        name:
+          type: string
+          description: The name of the Widget.
+          example: 5xx errors by service
+        type:
+          type: string
+          description: The type of the Widget.
+          enum:
+          - line
+          - bar
+          - area
+          - score
+          - pie
+          - treemap
+          - top-list
+        metric_ids:
+          type: array
+          description: the metric IDs associated with the widget
+          example:
+          - c957e259-7543-465e-b44b-6e3aac07d90a
+          - a86f1faa-6698-4b08-a78b-23608020dfba
+          items:
+            type: string
+            format: uuid
+    Meta:
+      required:
+      - dashboard_id
+      - from_timestamp
+      - org_id
+      - to_timestamp
+      type: object
+      properties:
+        org_id:
+          type: string
+          description: The organisation ID
+          format: uuid
+        dashboard_id:
+          type: string
+          description: The dashboard ID
+          example: 123af2
+        from_timestamp:
+          type: integer
+          description: The starting time of the period covered by the dashboard
+          example: 1709251200000
+        to_timestamp:
+          type: integer
+          description: The ending time of the period covered by the dashboard
+          example: 1711390455601
+    TopKeyValue:
+      type: object
+      properties:
+        value:
+          type: string
+          description: A value associated with the key.
+        rank:
+          type: integer
+          description: A count representing the number of times a value occurred for
+            the key.
+        type:
+          type: string
+          description: A description of the type of data contained in the key.
+          example: STRING | NUMBER | BOOLEAN
+    Series:
+      type: object
+      properties:
+        '@timestamp':
+          type: integer
+          description: Unix timestamp in milliseconds
+          example: 1711535140632
+        count:
+          type: integer
+          description: The number of events to compute the value
+        value:
+          type: number
+          description: The statistical value
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      name: X-BRONTO-API-KEY
+      in: header
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
