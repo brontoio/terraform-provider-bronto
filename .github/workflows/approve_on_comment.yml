@@ -28,3 +28,4 @@ jobs:
           username: ${{ github.event.repository.name }}
           status: ${{ job.status }}
           webhook: ${{ secrets.SLACK_WEBHOOK }}
+          version: ''
