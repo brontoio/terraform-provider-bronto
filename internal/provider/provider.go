@@ -2,17 +2,15 @@ package provider
 
 import (
 	"context"
-	"os"
-	bronto "terraform-provider-bronto/internal"
-	"terraform-provider-bronto/internal/provider/datasource_user"
-	"terraform-provider-bronto/internal/provider/resource_user"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"os"
+	bronto "terraform-provider-bronto/internal"
+	"terraform-provider-bronto/internal/provider/resource_user"
 )
 
 var (
@@ -28,8 +26,8 @@ func New(version string) func() provider.Provider {
 }
 
 type brontoProviderModel struct {
-	Endpoint types.String `tfsdk:"endpoint"`
-	ApiKey   types.String `tfsdk:"api_key"`
+	Region types.String `tfsdk:"region"`
+	ApiKey types.String `tfsdk:"api_key"`
 }
 
 type brontoProvider struct {
@@ -41,19 +39,13 @@ type brontoProvider struct {
 
 func (p *brontoProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description:         "Interact with the Bronto API.",
-		MarkdownDescription: "Interact with the [Bronto](https://bronto.io) API.",
 		Attributes: map[string]schema.Attribute{
-			"endpoint": schema.StringAttribute{
-				Required:            true,
-				Description:         "The base URL of the Bronto API to use, e.g. https://api.eu.bronto.io. Can also be set via the BRONTO_ENDPOINT environment variable.",
-				MarkdownDescription: "The base URL of the Bronto API to use, e.g. `https://api.eu.bronto.io`. Can also be set via the `BRONTO_ENDPOINT` environment variable.",
+			"region": schema.StringAttribute{
+				Required: true,
 			},
 			"api_key": schema.StringAttribute{
-				Required:            true,
-				Sensitive:           true,
-				Description:         "The API key used to authenticate with the Bronto API. Can also be set via the BRONTO_API_KEY environment variable.",
-				MarkdownDescription: "The API key used to authenticate with the Bronto API. Can also be set via the `BRONTO_API_KEY` environment variable.",
+				Required:  true,
+				Sensitive: true,
 			},
 		},
 	}
@@ -71,12 +63,12 @@ func (p *brontoProvider) Configure(ctx context.Context, req provider.ConfigureRe
 	// If practitioner provided a configuration value for any of the
 	// attributes, it must be a known value.
 
-	if config.Endpoint.IsUnknown() {
+	if config.Region.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
-			path.Root("endpoint"),
-			"Unknown Bronto Endpoint",
-			"The provider cannot create the Bronto API client as there is an unknown configuration value for the Bronto endpoint. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, or use the BRONTO_ENDPOINT environment variable.",
+			path.Root("region"),
+			"Unknown Bronto Region",
+			"The provider cannot create the Bronto API client as there is an unknown configuration value for the Bronto Region. "+
+				"Either target apply the source of the value first, set the value statically in the configuration, or use the BRONTO_REGION environment variable.",
 		)
 	}
 
@@ -96,11 +88,11 @@ func (p *brontoProvider) Configure(ctx context.Context, req provider.ConfigureRe
 	// Default values to environment variables, but override
 	// with Terraform configuration value if set.
 
-	endpoint := os.Getenv("BRONTO_ENDPOINT")
+	region := os.Getenv("BRONTO_REGION")
 	apkKey := os.Getenv("BRONTO_API_KEY")
 
-	if !config.Endpoint.IsNull() {
-		endpoint = config.Endpoint.ValueString()
+	if !config.Region.IsNull() {
+		region = config.Region.ValueString()
 	}
 
 	if !config.ApiKey.IsNull() {
@@ -110,19 +102,19 @@ func (p *brontoProvider) Configure(ctx context.Context, req provider.ConfigureRe
 	// If any of the expected configurations are missing, return
 	// errors with provider-specific guidance.
 
-	if endpoint == "" {
+	if region == "" {
 		resp.Diagnostics.AddAttributeError(
-			path.Root("endpoint"),
-			"Missing Bronto Endpoint",
-			"The provider cannot create the Bronto API client as there is a missing or empty value for the Bronto endpoint. "+
-				"Set the endpoint value in the configuration or use the BRONTO_ENDPOINT environment variable. "+
+			path.Root("region"),
+			"Missing Bronto Region",
+			"The provider cannot create the Bronto API client as there is a missing or empty value for the Bronto Region. "+
+				"Set the host value in the configuration or use the BRONTO_REGION environment variable. "+
 				"If either is already set, ensure the value is not empty.",
 		)
 	}
 
 	if apkKey == "" {
 		resp.Diagnostics.AddAttributeError(
-			path.Root("api_key"),
+			path.Root("apk_key"),
 			"Missing Bronto API Key",
 			"The provider cannot create the Bronto API client as there is a missing or empty value for the Bronto API Key. "+
 				"Set the host value in the configuration or use the BRONTO_API_KEY environment variable. "+
@@ -135,7 +127,7 @@ func (p *brontoProvider) Configure(ctx context.Context, req provider.ConfigureRe
 	}
 
 	// Create a new Bronto client using the configuration values
-	client, err := bronto.NewClient(&endpoint, &apkKey)
+	client, err := bronto.NewClient(&region, &apkKey)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Create Bronto API client",
@@ -158,9 +150,7 @@ func (p *brontoProvider) Metadata(ctx context.Context, req provider.MetadataRequ
 }
 
 func (p *brontoProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{
-		datasource_user.NewUserDataSource,
-	}
+	return []func() datasource.DataSource{}
 }
 
 func (p *brontoProvider) Resources(ctx context.Context) []func() resource.Resource {

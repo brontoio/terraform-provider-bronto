@@ -1,12 +1,12 @@
 openapi: 3.0.2
 info:
-  title: Bronto API
+  title: BrontoBytes API
   license:
     name: Commercial
   version: 1.0.0
 servers:
-- url: https://api.eu.bronto.io
-- url: https://api.us.bronto.io
+- url: https://api.eu.brontobytes.io
+- url: https://api.us.brontobytes.io
 security:
 - ApiKeyAuth: []
 - BearerAuth: []
@@ -443,84 +443,6 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "500":
           description: Internal Server Error - An error occurred on the server side.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        default:
-          description: Unexpected Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /users/{userId}/deactivate:
-    post:
-      tags:
-      - users
-      summary: Deactivate a user
-      operationId: deactivateUser
-      parameters:
-      - name: userId
-        in: path
-        description: Unique identifier of the user to deactivate
-        required: true
-        schema:
-          type: string
-          format: uuid
-      responses:
-        "200":
-          description: User deactivated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        "403":
-          description: Forbidden - The user does not have the privileges to deactivate users
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "404":
-          description: Not Found - The user was not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        default:
-          description: Unexpected Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /users/{userId}/reactivate:
-    post:
-      tags:
-      - users
-      summary: Reactivate a user
-      operationId: reactivateUser
-      parameters:
-      - name: userId
-        in: path
-        description: Unique identifier of the user to reactivate
-        required: true
-        schema:
-          type: string
-          format: uuid
-      responses:
-        "200":
-          description: User reactivated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        "403":
-          description: Forbidden - The user does not have the privileges to reactivate users
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "404":
-          description: Not Found - The user was not found
           content:
             application/json:
               schema:
@@ -2803,70 +2725,11 @@ components:
           format: email
           example: john@company.com
         roles:
-          type: array
-          items:
-            type: string
+          type: object
           description: A list of role ids
           example:
           - ReadOnly
           - Standard
-        last_logins:
-          type: object
-          description: A map of login methods to their last login timestamps (Unix epoch).
-          additionalProperties:
-            type: integer
-            format: int64
-            description: Unix timestamp representing the last login time for the method.
-          example:
-            Okta: 1731370728
-            Password: 1731338939
-        login_methods:
-          type: array
-          items:
-            $ref: '#/components/schemas/UserLoginMethod'
-        tags:
-          $ref: '#/components/schemas/Tags'
-        status:
-          type: string
-          description: Current status of the user
-          enum:
-          - INVITED
-          - ACTIVE
-          - INACTIVE
-          - DEACTIVATED
-          - MIGRATED
-          - REMOVED
-        invited_at:
-          type: integer
-          format: int64
-          description: Unix timestamp (seconds) of the last invitation sent to the user
-          example: 1731370728
-        invited_by:
-          type: string
-          description: Identifier for the user who sent the latest invitation
-          example: admin@company.com
-    UserLoginMethod:
-      type: object
-      required:
-      - name
-      - enabled
-      properties:
-        name:
-          type: string
-          description: The name of the login method
-          example: Password
-        enabled:
-          type: boolean
-          description: Flag to enable or disable a login method override for this specific user.
-    Tags:
-      type: object
-      description: A map of key value pairs associated with the resource
-      additionalProperties:
-        type: string
-        description: The value of the tag
-      example:
-        region: eu
-        environment: production
     CreateUserRequest:
       required:
       - email
@@ -2922,10 +2785,6 @@ components:
             type: string
           description: A list of role ids
           example: ["Admin", "Standard", "ReadOnly"]
-        login_methods:
-          type: array
-          items:
-            $ref: '#/components/schemas/UserLoginMethod'
     QueryExplain:
       type: object
       properties:
@@ -2955,7 +2814,7 @@ components:
           description: A url that can be used to get the log events before and after
             this log event.
           format: uri
-          example: https://api.bronto.io/context?sequence=111721913&limit=1&from=23746675-7022-4985-bd74-4af9eba58d72&timestamp=1711535140632&direction=both
+          example: https://api.brontobytes.io/context?sequence=111721913&limit=1&from=23746675-7022-4985-bd74-4af9eba58d72&timestamp=1711535140632&direction=both
         metadata:
           type: object
           properties:
@@ -2981,7 +2840,7 @@ components:
               description: A url that can be used to get the log events before and
                 after this log event.
               format: uri
-              example: https://api.bronto.io/context?sequence=111721913&limit=1&from=23746675-7022-4985-bd74-4af9eba58d72&timestamp=1711535140632&direction=both
+              example: https://api.brontobytes.io/context?sequence=111721913&limit=1&from=23746675-7022-4985-bd74-4af9eba58d72&timestamp=1711535140632&direction=both
             selectedKeys:
               type: object
               description: The selected columns displayed in this result
@@ -3043,7 +2902,7 @@ components:
                 this event.
               format: uri
               example: |
-                "https://api.eu.bronto.io/context?sequence=213&from=37bdf479-7c95-4e81-982a-25d0680fb602&timestamp=1716853354331&direction=both"
+                "https://api.eu.brontobytes.io/context?sequence=213&from=37bdf479-7c95-4e81-982a-25d0680fb602&timestamp=1716853354331&direction=both"
           description: The metadata of the event
     Group:
       type: object

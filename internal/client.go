@@ -3,11 +3,9 @@ package internal
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 )
@@ -16,57 +14,30 @@ import (
 type Client struct {
 	BaseURL    string
 	HTTPClient *http.Client
-	ApiKey     string
+	ApkKey     string
 }
 
-type APIError struct {
-	StatusCode int
-	Body       string
-}
-
-func (e *APIError) Error() string {
-	if e.Body == "" {
-		return fmt.Sprintf("received unexpected status code: %d", e.StatusCode)
-	}
-	return fmt.Sprintf("received unexpected status code: %d, body: %s", e.StatusCode, e.Body)
-}
-
-// IsNotFound returns true if err is an APIError representing a 404 response.
-func IsNotFound(err error) bool {
-	var apiErr *APIError
-	return errors.As(err, &apiErr) && apiErr.StatusCode == http.StatusNotFound
-}
-
-func NewClient(endpoint *string, apiKey *string) (*Client, error) {
-	if endpoint == nil || apiKey == nil {
-		return nil, fmt.Errorf("endpoint and api key are required")
-	}
-
-	baseURL, err := parseBaseURL(*endpoint)
-	if err != nil {
-		return nil, err
-	}
-
+func NewClient(region *string, apiKey *string) (*Client, error) {
 	c := Client{
 		HTTPClient: &http.Client{Timeout: 10 * time.Second},
-		BaseURL:    baseURL,
-		ApiKey:     *apiKey,
 	}
-	return &c, nil
-}
 
-func parseBaseURL(endpoint string) (string, error) {
-	parsed, err := url.Parse(endpoint)
-	if err != nil {
-		return "", fmt.Errorf("endpoint %q is not a valid URL: %w", endpoint, err)
+	// If region or apiKey not provided, return empty client
+	if region == nil || apiKey == nil {
+		return &c, fmt.Errorf("region and api key are required")
 	}
-	if parsed.Scheme != "http" && parsed.Scheme != "https" {
-		return "", fmt.Errorf("endpoint %q must be an absolute URL with an http or https scheme", endpoint)
+
+	if strings.EqualFold("EU", *region) {
+		c.BaseURL = "https://api.eu.brontobytes.io"
+	} else if strings.EqualFold("US", *region) {
+		c.BaseURL = "https://api.us.brontobytes.io"
+	} else if strings.EqualFold("Staging", *region) {
+		c.BaseURL = "https://api.staging.brontobytes.io"
+	} else {
+		return nil, fmt.Errorf("region %s is not valid", *region)
 	}
-	if parsed.Host == "" {
-		return "", fmt.Errorf("endpoint %q must include a host", endpoint)
-	}
-	return strings.TrimSuffix(endpoint, "/"), nil
+	c.ApkKey = *apiKey
+	return &c, nil
 }
 
 func (c *Client) CreateRequest(ctx context.Context, httpReqBody []byte, path string) (string, error) {
@@ -81,16 +52,11 @@ func (c *Client) ReadRequest(ctx context.Context, path string) (string, error) {
 	return c.doRequest(httpReq, http.StatusOK)
 }
 
-func (c *Client) UpdateRequest(ctx context.Context, httpReqBody []byte, path string) (string, error) {
+func (c *Client) UpdateRequest(ctx context.Context, httpReqBody []byte, path string) error {
 	endpoint := c.BaseURL + path
 	httpReq := c.createHttpRequest(ctx, httpReqBody, http.MethodPatch, endpoint)
-	return c.doRequest(httpReq, http.StatusOK)
-}
-
-func (c *Client) PostRequest(ctx context.Context, httpReqBody []byte, path string) (string, error) {
-	endpoint := c.BaseURL + path
-	httpReq := c.createHttpRequest(ctx, httpReqBody, http.MethodPost, endpoint)
-	return c.doRequest(httpReq, http.StatusOK)
+	_, err := c.doRequest(httpReq, http.StatusOK)
+	return err
 }
 
 func (c *Client) DeleteRequest(ctx context.Context, path string) error {
@@ -112,7 +78,7 @@ func (c *Client) createHttpRequest(ctx context.Context, httpReqBody []byte, meth
 }
 
 func (c *Client) addHeaders(httpReq *http.Request) {
-	httpReq.Header.Add("X-BRONTO-API-KEY", c.ApiKey)
+	httpReq.Header.Add("X-BRONTO-API-KEY", c.ApkKey)
 	httpReq.Header.Add("Content-Type", "application/json")
 }
 
@@ -123,14 +89,14 @@ func (c *Client) doRequest(httpReq *http.Request, expectedResult int) (string, e
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != expectedResult {
+		return "", fmt.Errorf("received non-%d status code: %d", expectedResult, resp.StatusCode)
+	}
+
 	// Read the response body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", fmt.Errorf("error reading response body: %w", err)
-	}
-
-	if resp.StatusCode != expectedResult {
-		return "", &APIError{StatusCode: resp.StatusCode, Body: string(body)}
 	}
 
 	// Return the body as a string

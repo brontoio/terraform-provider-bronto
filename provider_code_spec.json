@@ -6,7 +6,6 @@
 		{
 			"name": "user",
 			"schema": {
-				"description": "Manages a Bronto user.",
 				"attributes": [
 					{
 						"name": "email",
@@ -68,79 +67,6 @@
 						"string": {
 							"computed_optional_required": "computed",
 							"description": "The unique identifier for the user"
-						}
-					},
-					{
-						"name": "active",
-						"bool": {
-							"computed_optional_required": "computed_optional",
-							"description": "Whether the user account is active. Set to false to deactivate the user, or true to reactivate a previously deactivated user. Deactivating a user that has never been activated (e.g. status INVITED) has no effect."
-						}
-					},
-					{
-						"name": "invited_at",
-						"int64": {
-							"computed_optional_required": "computed",
-							"description": "Unix timestamp (seconds) of the last invitation sent to the user"
-						}
-					},
-					{
-						"name": "invited_by",
-						"string": {
-							"computed_optional_required": "computed",
-							"description": "Identifier for the user who sent the latest invitation"
-						}
-					},
-					{
-						"name": "last_logins",
-						"map": {
-							"computed_optional_required": "computed",
-							"element_type": {
-								"int64": {}
-							},
-							"description": "A map of login methods to their last login timestamps (Unix epoch)."
-						}
-					},
-					{
-						"name": "login_methods",
-						"set_nested": {
-							"computed_optional_required": "computed_optional",
-							"description": "Per-user overrides for enabling or disabling specific login methods",
-							"nested_object": {
-								"attributes": [
-									{
-										"name": "enabled",
-										"bool": {
-											"computed_optional_required": "required",
-											"description": "Flag to enable or disable a login method override for this specific user."
-										}
-									},
-									{
-										"name": "name",
-										"string": {
-											"computed_optional_required": "required",
-											"description": "The name of the login method"
-										}
-									}
-								]
-							}
-						}
-					},
-					{
-						"name": "status",
-						"string": {
-							"computed_optional_required": "computed",
-							"description": "Current status of the user"
-						}
-					},
-					{
-						"name": "tags",
-						"map": {
-							"computed_optional_required": "computed",
-							"element_type": {
-								"string": {}
-							},
-							"description": "A map of key value pairs associated with the resource"
 						}
 					}
 				]
