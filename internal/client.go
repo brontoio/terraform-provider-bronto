@@ -113,6 +113,25 @@ func (c *Client) PostNoContentRequest(ctx context.Context, httpReqBody []byte, p
 	return err
 }
 
+// PutRequestWithBody performs an HTTP PUT that responds 200 with the
+// updated resource (as opposed to PutRequest, which expects 204 No
+// Content).
+func (c *Client) PutRequestWithBody(ctx context.Context, httpReqBody []byte, path string) (string, error) {
+	endpoint := c.BaseURL + path
+	httpReq := c.createHttpRequest(ctx, httpReqBody, http.MethodPut, endpoint)
+	return c.doRequest(httpReq, http.StatusOK)
+}
+
+// DeleteRequestWithBody performs an HTTP DELETE that includes a JSON
+// request body (some endpoints, like tag deletion, identify the target via
+// the body rather than the path, unlike DeleteRequest).
+func (c *Client) DeleteRequestWithBody(ctx context.Context, httpReqBody []byte, path string) error {
+	endpoint := c.BaseURL + path
+	httpReq := c.createHttpRequest(ctx, httpReqBody, http.MethodDelete, endpoint)
+	_, err := c.doRequest(httpReq, http.StatusNoContent)
+	return err
+}
+
 func (c *Client) DeleteRequest(ctx context.Context, path string) error {
 	endpoint := c.BaseURL + path
 	httpReq := c.createHttpRequest(ctx, nil, http.MethodDelete, endpoint)

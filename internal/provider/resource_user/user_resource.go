@@ -163,7 +163,42 @@ func (r *userResource) Create(ctx context.Context, req resource.CreateRequest, r
 		}
 	}
 
-	// 7. Save Terraform state
+	// 7. The create endpoint doesn't accept tags either; the only way to set
+	// them is one /tags API call per key.
+	desiredTags, diags := extractStringMap(ctx, plan.Tags)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if len(desiredTags) > 0 {
+		if err := r.client.SyncTags(ctx, "user", createResp.Id, nil, desiredTags); err != nil {
+			resp.Diagnostics.AddError(
+				"Unable to Create Resource",
+				"An unexpected error occurred while applying tags to the new user. Error: "+err.Error(),
+			)
+			return
+		}
+
+		httpResp, err = r.client.ReadRequest(ctx, "/users/"+createResp.Id)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Unable to Create Resource",
+				"An unexpected error occurred while reading back the user after applying tags. Error: "+err.Error(),
+			)
+			return
+		}
+		createResp, err = bronto.DecodeUser(httpResp)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Unable to Create Resource",
+				"An unexpected error occurred while parsing the post-tagging read response. JSON Error: "+err.Error(),
+			)
+			return
+		}
+	}
+
+	// 8. Save Terraform state
 	resp.Diagnostics.Append(populateModel(ctx, &plan, createResp)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -278,7 +313,45 @@ func (r *userResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		}
 	}
 
-	// 6. Save Terraform state
+	// 6. Sync tags, if changed. The user's own update endpoint doesn't
+	// accept tags; the only way to change them is one /tags API call per
+	// changed key.
+	if !plan.Tags.Equal(state.Tags) {
+		currentTags, diags := extractStringMap(ctx, state.Tags)
+		resp.Diagnostics.Append(diags...)
+		desiredTags, diags2 := extractStringMap(ctx, plan.Tags)
+		resp.Diagnostics.Append(diags2...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if err := r.client.SyncTags(ctx, "user", userId, currentTags, desiredTags); err != nil {
+			resp.Diagnostics.AddError(
+				"Unable to Update Resource",
+				"An unexpected error occurred while syncing user tags. Error: "+err.Error(),
+			)
+			return
+		}
+
+		httpResp, err = r.client.ReadRequest(ctx, "/users/"+userId)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Unable to Update Resource",
+				"An unexpected error occurred while reading back the user after syncing tags. Error: "+err.Error(),
+			)
+			return
+		}
+		updateResp, err = bronto.DecodeUser(httpResp)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Unable to Update Resource",
+				"An unexpected error occurred while parsing the post-tagging read response. JSON Error: "+err.Error(),
+			)
+			return
+		}
+	}
+
+	// 7. Save Terraform state
 	resp.Diagnostics.Append(populateModel(ctx, &plan, updateResp)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -485,6 +558,18 @@ func populateModel(ctx context.Context, data *UserModel, api bronto.User) diag.D
 	data.LoginMethods = loginMethodsVal
 
 	return diags
+}
+
+func extractStringMap(ctx context.Context, m types.Map) (map[string]string, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	if m.IsNull() || m.IsUnknown() {
+		return nil, diags
+	}
+
+	var values map[string]string
+	diags.Append(m.ElementsAs(ctx, &values, false)...)
+	return values, diags
 }
 
 func extractStringList(l []string) basetypes.ListValue {

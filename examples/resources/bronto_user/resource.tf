@@ -12,6 +12,12 @@ resource "bronto_user" "example" {
       enabled = false
     },
   ]
+
+  # Optional: each key change costs a separate API call (there's no bulk tag
+  # endpoint), so this is best set once rather than churned frequently.
+  tags = {
+    team = "platform"
+  }
 }
 
 # Deactivate a user without deleting them, keeping their history and access

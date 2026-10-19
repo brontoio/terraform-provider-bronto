@@ -30,6 +30,13 @@ resource "bronto_dashboard" "application_performance" {
 
   # Optional: metrics (LBMs) associated with the dashboard as a whole.
   layout_metric_ids = ["41521f35-1b06-41f0-9cdc-9a938b5739d1"]
+
+  # Optional: each key change costs a separate API call (there's no bulk tag
+  # endpoint), so this is best set once rather than churned frequently.
+  tags = {
+    team        = "observability"
+    environment = "production"
+  }
 }
 ```
 
@@ -43,13 +50,13 @@ resource "bronto_dashboard" "application_performance" {
 ### Optional
 
 - `layout_metric_ids` (Set of String) The IDs of the metrics (LBMs) associated with the dashboard's layout
+- `tags` (Map of String) A map of key value pairs associated with the dashboard. Applied via individual tag API calls, not the dashboard's own create/update endpoints, so each changed key costs a separate request.
 - `widget_ids` (Set of String) The IDs of the widgets attached to this dashboard
 
 ### Read-Only
 
 - `description` (String) The description of the dashboard. The API does not currently support setting this on create or update.
 - `id` (String) The unique identifier for the dashboard
-- `tags` (Map of String) A map of key value pairs associated with the dashboard
 
 ## Import
 

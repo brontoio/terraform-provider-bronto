@@ -32,6 +32,12 @@ resource "bronto_widget" "errors_by_service" {
     color_name = "Purple"
     mode       = "sql"
   })
+
+  # Optional: each key change costs a separate API call (there's no bulk tag
+  # endpoint), so this is best set once rather than churned frequently.
+  tags = {
+    team = "observability"
+  }
 }
 
 # A composite widget that groups other widgets instead of sources.
@@ -55,12 +61,12 @@ resource "bronto_widget" "overview_group" {
 - `aux` (String) Additional widget configuration, as a JSON-encoded string (e.g. `jsonencode({...})`)
 - `description` (String) The widget description
 - `sources` (Attributes List) The metrics, monitors, and SLOs that supply data to the widget, in display order. A widget can include either `sources` or `widget_ids`, but not both. (see [below for nested schema](#nestedatt--sources))
+- `tags` (Map of String) A map of key value pairs associated with the widget. Applied via individual tag API calls, not the widget's own create/update endpoints, so each changed key costs a separate request.
 - `widget_ids` (Set of String) The IDs of other widgets included in this (composite) widget. A widget can include either `sources` or `widget_ids`, but not both.
 
 ### Read-Only
 
 - `id` (String) The unique identifier for the widget
-- `tags` (Map of String) A map of key value pairs associated with the widget
 
 <a id="nestedatt--sources"></a>
 ### Nested Schema for `sources`

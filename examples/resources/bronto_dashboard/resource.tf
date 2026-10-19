@@ -15,4 +15,11 @@ resource "bronto_dashboard" "application_performance" {
 
   # Optional: metrics (LBMs) associated with the dashboard as a whole.
   layout_metric_ids = ["41521f35-1b06-41f0-9cdc-9a938b5739d1"]
+
+  # Optional: each key change costs a separate API call (there's no bulk tag
+  # endpoint), so this is best set once rather than churned frequently.
+  tags = {
+    team        = "observability"
+    environment = "production"
+  }
 }

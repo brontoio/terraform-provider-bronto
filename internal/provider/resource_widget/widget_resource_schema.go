@@ -96,9 +96,10 @@ func WidgetResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"tags": schema.MapAttribute{
 				ElementType:         types.StringType,
+				Optional:            true,
 				Computed:            true,
-				Description:         "A map of key value pairs associated with the widget",
-				MarkdownDescription: "A map of key value pairs associated with the widget",
+				Description:         "A map of key value pairs associated with the widget. Applied via individual tag API calls, not the widget's own create/update endpoints, so each changed key costs a separate request.",
+				MarkdownDescription: "A map of key value pairs associated with the widget. Applied via individual tag API calls, not the widget's own create/update endpoints, so each changed key costs a separate request.",
 			},
 		},
 	}

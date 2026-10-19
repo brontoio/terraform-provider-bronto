@@ -84,6 +84,41 @@ func (r *widgetResource) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
+	// The create endpoint doesn't accept tags; the only way to set them is
+	// one /tags API call per key.
+	desiredTags, diags2 := extractStringMap(ctx, plan.Tags)
+	resp.Diagnostics.Append(diags2...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if len(desiredTags) > 0 {
+		if err := r.client.SyncTags(ctx, "widget", created.Id, nil, desiredTags); err != nil {
+			resp.Diagnostics.AddError(
+				"Unable to Create Resource",
+				"An unexpected error occurred while applying tags to the new widget. Error: "+err.Error(),
+			)
+			return
+		}
+
+		httpResp, err = r.client.ReadRequest(ctx, "/widgets/"+created.Id)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Unable to Create Resource",
+				"An unexpected error occurred while reading back the widget after applying tags. Error: "+err.Error(),
+			)
+			return
+		}
+		created, err = bronto.DecodeWidget(httpResp)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Unable to Create Resource",
+				"An unexpected error occurred while parsing the post-tagging read response. JSON Error: "+err.Error(),
+			)
+			return
+		}
+	}
+
 	resp.Diagnostics.Append(populateModel(ctx, &plan, created)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -152,6 +187,24 @@ func (r *widgetResource) Update(ctx context.Context, req resource.UpdateRequest,
 			"An unexpected error occurred while calling the update API. Error: "+err.Error(),
 		)
 		return
+	}
+
+	if !plan.Tags.Equal(state.Tags) {
+		currentTags, diags := extractStringMap(ctx, state.Tags)
+		resp.Diagnostics.Append(diags...)
+		desiredTags, diags2 := extractStringMap(ctx, plan.Tags)
+		resp.Diagnostics.Append(diags2...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if err := r.client.SyncTags(ctx, "widget", widgetId, currentTags, desiredTags); err != nil {
+			resp.Diagnostics.AddError(
+				"Unable to Update Resource",
+				"An unexpected error occurred while syncing widget tags. Error: "+err.Error(),
+			)
+			return
+		}
 	}
 
 	httpResp, err := r.client.ReadRequest(ctx, "/widgets/"+widgetId)
@@ -270,6 +323,18 @@ func populateModel(ctx context.Context, data *WidgetModel, w bronto.Widget) diag
 	data.Tags = tagsVal
 
 	return diags
+}
+
+func extractStringMap(ctx context.Context, m types.Map) (map[string]string, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	if m.IsNull() || m.IsUnknown() {
+		return nil, diags
+	}
+
+	var values map[string]string
+	diags.Append(m.ElementsAs(ctx, &values, false)...)
+	return values, diags
 }
 
 func extractSources(ctx context.Context, list types.List) ([]bronto.WidgetSource, diag.Diagnostics) {

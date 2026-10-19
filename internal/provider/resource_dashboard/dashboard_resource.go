@@ -113,12 +113,32 @@ func (r *dashboardResource) Create(ctx context.Context, req resource.CreateReque
 			)
 			return
 		}
+	}
 
+	// The create endpoint doesn't accept tags either; the only way to set
+	// them is one /tags API call per key.
+	desiredTags, diags := extractStringMap(ctx, plan.Tags)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if len(desiredTags) > 0 {
+		if err := r.client.SyncTags(ctx, "dashboard", created.Id, nil, desiredTags); err != nil {
+			resp.Diagnostics.AddError(
+				"Unable to Create Resource",
+				"An unexpected error occurred while applying tags to the new dashboard. Error: "+err.Error(),
+			)
+			return
+		}
+	}
+
+	if len(widgetIds) > 0 || len(desiredTags) > 0 {
 		created, err = r.getDashboard(ctx, created.Id)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Unable to Create Resource",
-				"An unexpected error occurred while reading back the dashboard after attaching widgets. Error: "+err.Error(),
+				"An unexpected error occurred while reading back the dashboard after attaching widgets and tags. Error: "+err.Error(),
 			)
 			return
 		}
@@ -246,6 +266,24 @@ func (r *dashboardResource) Update(ctx context.Context, req resource.UpdateReque
 		}
 	}
 
+	if !plan.Tags.Equal(state.Tags) {
+		currentTags, diags := extractStringMap(ctx, state.Tags)
+		resp.Diagnostics.Append(diags...)
+		desiredTags, diags2 := extractStringMap(ctx, plan.Tags)
+		resp.Diagnostics.Append(diags2...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if err := r.client.SyncTags(ctx, "dashboard", dashboardId, currentTags, desiredTags); err != nil {
+			resp.Diagnostics.AddError(
+				"Unable to Update Resource",
+				"An unexpected error occurred while syncing dashboard tags. Error: "+err.Error(),
+			)
+			return
+		}
+	}
+
 	updated, err := r.getDashboard(ctx, dashboardId)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -331,6 +369,18 @@ func populateModel(ctx context.Context, data *DashboardModel, d bronto.Dashboard
 	data.Tags = tagsVal
 
 	return diags
+}
+
+func extractStringMap(ctx context.Context, m types.Map) (map[string]string, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	if m.IsNull() || m.IsUnknown() {
+		return nil, diags
+	}
+
+	var values map[string]string
+	diags.Append(m.ElementsAs(ctx, &values, false)...)
+	return values, diags
 }
 
 func extractStringSet(ctx context.Context, set types.Set) ([]string, diag.Diagnostics) {

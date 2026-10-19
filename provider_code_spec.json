@@ -12,7 +12,19 @@
 						"name": "email",
 						"string": {
 							"computed_optional_required": "required",
-							"description": "The user's email address"
+							"description": "The user's email address",
+							"plan_modifiers": [
+								{
+									"custom": {
+										"imports": [
+											{
+												"path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+											}
+										],
+										"schema_definition": "stringplanmodifier.RequiresReplace()"
+									}
+								}
+							]
 						}
 					},
 					{
@@ -136,11 +148,11 @@
 					{
 						"name": "tags",
 						"map": {
-							"computed_optional_required": "computed",
+							"computed_optional_required": "computed_optional",
 							"element_type": {
 								"string": {}
 							},
-							"description": "A map of key value pairs associated with the resource"
+							"description": "A map of key value pairs associated with the resource. Applied via individual tag API calls, not the user's own create/update endpoints, so each changed key costs a separate request."
 						}
 					}
 				]

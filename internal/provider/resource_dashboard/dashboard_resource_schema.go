@@ -54,9 +54,10 @@ func DashboardResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"tags": schema.MapAttribute{
 				ElementType:         types.StringType,
+				Optional:            true,
 				Computed:            true,
-				Description:         "A map of key value pairs associated with the dashboard",
-				MarkdownDescription: "A map of key value pairs associated with the dashboard",
+				Description:         "A map of key value pairs associated with the dashboard. Applied via individual tag API calls, not the dashboard's own create/update endpoints, so each changed key costs a separate request.",
+				MarkdownDescription: "A map of key value pairs associated with the dashboard. Applied via individual tag API calls, not the dashboard's own create/update endpoints, so each changed key costs a separate request.",
 			},
 		},
 	}

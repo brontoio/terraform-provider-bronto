@@ -42,6 +42,10 @@ resource "bronto_user" "demo_import" {
   ]
 
   active = true
+
+  tags = {
+    purpose = "tags-feature-verification"
+  }
 }
 
 data "bronto_user" "demo_lookup" {

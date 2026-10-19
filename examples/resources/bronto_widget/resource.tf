@@ -17,6 +17,12 @@ resource "bronto_widget" "errors_by_service" {
     color_name = "Purple"
     mode       = "sql"
   })
+
+  # Optional: each key change costs a separate API call (there's no bulk tag
+  # endpoint), so this is best set once rather than churned frequently.
+  tags = {
+    team = "observability"
+  }
 }
 
 # A composite widget that groups other widgets instead of sources.

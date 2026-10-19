@@ -111,9 +111,10 @@ func UserResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"tags": schema.MapAttribute{
 				ElementType:         types.StringType,
+				Optional:            true,
 				Computed:            true,
-				Description:         "A map of key value pairs associated with the resource",
-				MarkdownDescription: "A map of key value pairs associated with the resource",
+				Description:         "A map of key value pairs associated with the resource. Applied via individual tag API calls, not the user's own create/update endpoints, so each changed key costs a separate request.",
+				MarkdownDescription: "A map of key value pairs associated with the resource. Applied via individual tag API calls, not the user's own create/update endpoints, so each changed key costs a separate request.",
 			},
 		},
 		Description: "Manages a Bronto user.",
