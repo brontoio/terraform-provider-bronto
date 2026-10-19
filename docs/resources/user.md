@@ -53,7 +53,7 @@ resource "bronto_user" "on_leave" {
 ### Optional
 
 - `active` (Boolean) Whether the user account is active. Set to false to deactivate the user, or true to reactivate a previously deactivated user. Deactivating a user that has never been activated (e.g. status INVITED) has no effect.
-- `login_methods` (Attributes List) Per-user overrides for enabling or disabling specific login methods (see [below for nested schema](#nestedatt--login_methods))
+- `login_methods` (Attributes Set) Per-user overrides for enabling or disabling specific login methods (see [below for nested schema](#nestedatt--login_methods))
 
 ### Read-Only
 
@@ -75,6 +75,8 @@ Required:
 ## Import
 
 Import is supported using the following syntax:
+
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
 # Users can be imported by their unique ID.

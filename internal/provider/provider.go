@@ -5,7 +5,10 @@ import (
 	"os"
 	bronto "terraform-provider-bronto/internal"
 	"terraform-provider-bronto/internal/provider/datasource_user"
+	"terraform-provider-bronto/internal/provider/resource_dashboard"
+	"terraform-provider-bronto/internal/provider/resource_metric_definition"
 	"terraform-provider-bronto/internal/provider/resource_user"
+	"terraform-provider-bronto/internal/provider/resource_widget"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -166,5 +169,8 @@ func (p *brontoProvider) DataSources(ctx context.Context) []func() datasource.Da
 func (p *brontoProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		resource_user.NewUserResource,
+		resource_widget.NewWidgetResource,
+		resource_dashboard.NewDashboardResource,
+		resource_metric_definition.NewMetricDefinitionResource,
 	}
 }

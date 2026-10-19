@@ -53,3 +53,10 @@ data "bronto_user" "demo_lookup_by_id" {
   id         = bronto_user.demo_import.id
   depends_on = [bronto_user.demo_import]
 }
+
+# The bronto_metric_definition / bronto_widget / bronto_dashboard demo
+# (api_gateway_search_calls / api_gateway_search_activity) now lives in the
+# separate `dogfood` repo, which dogfoods this provider as a real consumer
+# would. The resources themselves weren't destroyed - just moved (via
+# `terraform state rm` here + `terraform import` there) to avoid two states
+# fighting over the same remote objects.

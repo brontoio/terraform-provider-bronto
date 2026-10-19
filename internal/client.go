@@ -93,6 +93,26 @@ func (c *Client) PostRequest(ctx context.Context, httpReqBody []byte, path strin
 	return c.doRequest(httpReq, http.StatusOK)
 }
 
+// PutRequest performs a full-replace update via HTTP PUT, for endpoints
+// that respond 204 No Content instead of echoing the updated resource (as
+// opposed to UpdateRequest, which PATCHes and expects a 200 with a body).
+func (c *Client) PutRequest(ctx context.Context, httpReqBody []byte, path string) error {
+	endpoint := c.BaseURL + path
+	httpReq := c.createHttpRequest(ctx, httpReqBody, http.MethodPut, endpoint)
+	_, err := c.doRequest(httpReq, http.StatusNoContent)
+	return err
+}
+
+// PostNoContentRequest performs an HTTP POST against an endpoint that
+// responds 204 No Content instead of echoing a body (as opposed to
+// PostRequest, which expects a 200 with a body).
+func (c *Client) PostNoContentRequest(ctx context.Context, httpReqBody []byte, path string) error {
+	endpoint := c.BaseURL + path
+	httpReq := c.createHttpRequest(ctx, httpReqBody, http.MethodPost, endpoint)
+	_, err := c.doRequest(httpReq, http.StatusNoContent)
+	return err
+}
+
 func (c *Client) DeleteRequest(ctx context.Context, path string) error {
 	endpoint := c.BaseURL + path
 	httpReq := c.createHttpRequest(ctx, nil, http.MethodDelete, endpoint)

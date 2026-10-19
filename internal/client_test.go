@@ -117,6 +117,38 @@ func TestPostRequestExpects200(t *testing.T) {
 	}
 }
 
+func TestPutRequestExpectsNoContent(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPut {
+			t.Errorf("method = %s, want PUT", r.Method)
+		}
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer srv.Close()
+
+	c := testClient(t, srv)
+	if err := c.PutRequest(context.Background(), []byte(`{}`), "/widgets/123"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestPutRequestUnexpectedStatusReturnsAPIError(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"message":"invalid widget"}`))
+	}))
+	defer srv.Close()
+
+	c := testClient(t, srv)
+	err := c.PutRequest(context.Background(), []byte(`{}`), "/widgets/123")
+	if err == nil {
+		t.Fatal("expected an error, got nil")
+	}
+	if !strings.Contains(err.Error(), "invalid widget") {
+		t.Errorf("error %q does not surface the response body", err.Error())
+	}
+}
+
 func TestDeleteRequestExpectsNoContent(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodDelete {
