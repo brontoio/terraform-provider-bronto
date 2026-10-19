@@ -16,8 +16,12 @@ Manages a Bronto dashboard.
 resource "bronto_widget" "errors_by_service" {
   name = "5xx errors by service"
   type = "treemap"
-  # Metrics (LBMs) aren't managed by this provider yet; substitute a real metric ID.
-  metric_ids = ["41521f35-1b06-41f0-9cdc-9a938b5739d1"]
+  sources = [
+    {
+      type = "metric"
+      id   = "41521f35-1b06-41f0-9cdc-9a938b5739d1"
+    }
+  ]
 }
 
 resource "bronto_dashboard" "application_performance" {

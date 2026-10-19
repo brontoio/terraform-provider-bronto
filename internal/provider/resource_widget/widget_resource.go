@@ -200,8 +200,8 @@ func (r *widgetResource) ImportState(ctx context.Context, req resource.ImportSta
 func encodeWidgetRequest(ctx context.Context, data WidgetModel) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	metricIds, metricDiags := extractStringSet(ctx, data.MetricIds)
-	diags.Append(metricDiags...)
+	sources, sourceDiags := extractSources(ctx, data.Sources)
+	diags.Append(sourceDiags...)
 
 	widgetIds, widgetDiags := extractStringSet(ctx, data.WidgetIds)
 	diags.Append(widgetDiags...)
@@ -214,7 +214,7 @@ func encodeWidgetRequest(ctx context.Context, data WidgetModel) ([]byte, diag.Di
 		Name:        data.Name.ValueString(),
 		Description: data.Description.ValueString(),
 		Type:        data.Type.ValueString(),
-		MetricIds:   metricIds,
+		Sources:     sources,
 		WidgetIds:   widgetIds,
 	}
 	if !data.Aux.IsNull() && !data.Aux.IsUnknown() {
@@ -257,9 +257,9 @@ func populateModel(ctx context.Context, data *WidgetModel, w bronto.Widget) diag
 		data.Aux = jsontypes.NewNormalizedValue(string(w.Aux))
 	}
 
-	metricIdsVal, metricDiags := stringSetValue(ctx, w.MetricIds)
-	diags.Append(metricDiags...)
-	data.MetricIds = metricIdsVal
+	sourcesVal, sourceDiags := convertSources(ctx, w.Sources)
+	diags.Append(sourceDiags...)
+	data.Sources = sourcesVal
 
 	widgetIdsVal, widgetDiags := stringSetValue(ctx, w.WidgetIds)
 	diags.Append(widgetDiags...)
@@ -270,6 +270,46 @@ func populateModel(ctx context.Context, data *WidgetModel, w bronto.Widget) diag
 	data.Tags = tagsVal
 
 	return diags
+}
+
+func extractSources(ctx context.Context, list types.List) ([]bronto.WidgetSource, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	if list.IsNull() || list.IsUnknown() {
+		return nil, diags
+	}
+
+	var sources []SourceModel
+	diags.Append(list.ElementsAs(ctx, &sources, false)...)
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	result := make([]bronto.WidgetSource, 0, len(sources))
+	for _, s := range sources {
+		result = append(result, bronto.WidgetSource{
+			Type: s.Type.ValueString(),
+			Id:   s.Id.ValueString(),
+		})
+	}
+
+	return result, diags
+}
+
+// convertSources mirrors stringSetValue's nil-vs-empty normalization, but
+// for the ordered "sources" list: a nil slice is treated as an empty (not
+// null) list, since the API responding with an absent field or an empty
+// array both mean "no sources" and must map to the same state value.
+func convertSources(ctx context.Context, sources []bronto.WidgetSource) (types.List, diag.Diagnostics) {
+	models := make([]SourceModel, 0, len(sources))
+	for _, s := range sources {
+		models = append(models, SourceModel{
+			Type: types.StringValue(s.Type),
+			Id:   types.StringValue(s.Id),
+		})
+	}
+
+	return types.ListValueFrom(ctx, sourceObjectType, models)
 }
 
 func extractStringSet(ctx context.Context, set types.Set) ([]string, diag.Diagnostics) {

@@ -19,9 +19,12 @@ func TestPopulateModelMapsAllFields(t *testing.T) {
 		Description: "This widget shows the 5xx errors by service",
 		Type:        "treemap",
 		Aux:         json.RawMessage(`{"color_name":"Purple"}`),
-		MetricIds:   []string{"metric-1", "metric-2"},
-		WidgetIds:   nil,
-		Tags:        map[string]string{"team": "observability"},
+		Sources: []bronto.WidgetSource{
+			{Type: "metric", Id: "metric-1"},
+			{Type: "metric", Id: "metric-2"},
+		},
+		WidgetIds: nil,
+		Tags:      map[string]string{"team": "observability"},
 	}
 
 	var data WidgetModel
@@ -45,8 +48,15 @@ func TestPopulateModelMapsAllFields(t *testing.T) {
 	if data.Aux.ValueString() != `{"color_name":"Purple"}` {
 		t.Errorf("Aux = %s", data.Aux.ValueString())
 	}
-	if data.MetricIds.IsNull() {
-		t.Errorf("MetricIds should not be null")
+	var sources []SourceModel
+	if diags := data.Sources.ElementsAs(ctx, &sources, false); diags.HasError() {
+		t.Fatalf("Sources.ElementsAs: %v", diags)
+	}
+	if len(sources) != 2 {
+		t.Fatalf("Sources = %d entries, want 2", len(sources))
+	}
+	if sources[0].Type.ValueString() != "metric" || sources[0].Id.ValueString() != "metric-1" {
+		t.Errorf("Sources[0] = %+v", sources[0])
 	}
 	if data.WidgetIds.IsNull() {
 		t.Errorf("WidgetIds should not be null (expected an empty set)")
@@ -73,13 +83,18 @@ func TestPopulateModelEmptyDescriptionAndAuxAreNull(t *testing.T) {
 func TestEncodeWidgetRequestIncludesAux(t *testing.T) {
 	ctx := context.Background()
 
-	metricIds, _ := types.SetValueFrom(ctx, types.StringType, []string{"m1"})
+	sources, diags := types.ListValueFrom(ctx, sourceObjectType, []SourceModel{
+		{Type: types.StringValue("metric"), Id: types.StringValue("m1")},
+	})
+	if diags.HasError() {
+		t.Fatalf("types.ListValueFrom: %v", diags)
+	}
 
 	data := WidgetModel{
 		Name:      types.StringValue("Widget"),
 		Type:      types.StringValue("line"),
 		Aux:       jsontypes.NewNormalizedValue(`{"mode":"sql"}`),
-		MetricIds: metricIds,
+		Sources:   sources,
 		WidgetIds: types.SetNull(types.StringType),
 	}
 
@@ -99,8 +114,8 @@ func TestEncodeWidgetRequestIncludesAux(t *testing.T) {
 	if string(decoded.Aux) != `{"mode":"sql"}` {
 		t.Errorf("Aux = %s", string(decoded.Aux))
 	}
-	if len(decoded.MetricIds) != 1 || decoded.MetricIds[0] != "m1" {
-		t.Errorf("MetricIds = %v", decoded.MetricIds)
+	if len(decoded.Sources) != 1 || decoded.Sources[0].Type != "metric" || decoded.Sources[0].Id != "m1" {
+		t.Errorf("Sources = %v", decoded.Sources)
 	}
 	if len(decoded.WidgetIds) != 0 {
 		t.Errorf("WidgetIds = %v, want empty", decoded.WidgetIds)
@@ -114,7 +129,7 @@ func TestEncodeWidgetRequestOmitsAuxWhenNull(t *testing.T) {
 		Name:      types.StringValue("Widget"),
 		Type:      types.StringValue("line"),
 		Aux:       jsontypes.NewNormalizedNull(),
-		MetricIds: types.SetNull(types.StringType),
+		Sources:   types.ListNull(sourceObjectType),
 		WidgetIds: types.SetNull(types.StringType),
 	}
 

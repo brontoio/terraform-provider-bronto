@@ -17,8 +17,15 @@ resource "bronto_widget" "errors_by_service" {
   name        = "5xx errors by service"
   description = "This widget shows the 5xx errors by service"
   type        = "treemap"
-  # Metrics (LBMs) aren't managed by this provider yet; substitute a real metric ID.
-  metric_ids = ["41521f35-1b06-41f0-9cdc-9a938b5739d1"]
+
+  # A widget can include either sources or widget_ids, but not both. Sources
+  # can reference a metric definition, a monitor, or an SLO.
+  sources = [
+    {
+      type = "metric"
+      id   = "41521f35-1b06-41f0-9cdc-9a938b5739d1"
+    }
+  ]
 
   # Optional: arbitrary widget-type-specific configuration.
   aux = jsonencode({
@@ -27,8 +34,7 @@ resource "bronto_widget" "errors_by_service" {
   })
 }
 
-# A composite widget that groups other widgets instead of metrics. A widget
-# can reference metrics or other widgets, but not both.
+# A composite widget that groups other widgets instead of sources.
 resource "bronto_widget" "overview_group" {
   name       = "Service overview"
   type       = "top-list"
@@ -48,13 +54,21 @@ resource "bronto_widget" "overview_group" {
 
 - `aux` (String) Additional widget configuration, as a JSON-encoded string (e.g. `jsonencode({...})`)
 - `description` (String) The widget description
-- `metric_ids` (Set of String) The metric IDs associated with the widget. A widget can include either metrics or widgets, but not both.
-- `widget_ids` (Set of String) The IDs of other widgets included in this (composite) widget. A widget can include either metrics or widgets, but not both.
+- `sources` (Attributes List) The metrics, monitors, and SLOs that supply data to the widget, in display order. A widget can include either `sources` or `widget_ids`, but not both. (see [below for nested schema](#nestedatt--sources))
+- `widget_ids` (Set of String) The IDs of other widgets included in this (composite) widget. A widget can include either `sources` or `widget_ids`, but not both.
 
 ### Read-Only
 
 - `id` (String) The unique identifier for the widget
 - `tags` (Map of String) A map of key value pairs associated with the widget
+
+<a id="nestedatt--sources"></a>
+### Nested Schema for `sources`
+
+Required:
+
+- `id` (String) The unique identifier of the referenced metric definition, monitor, or SLO.
+- `type` (String) The kind of entity referenced: `metric`, `monitor`, or `slo`.
 
 ## Import
 

@@ -5,6 +5,12 @@ import (
 	"strings"
 )
 
+// WidgetSource is a reference to a metric, monitor, or SLO that supplies data to a widget.
+type WidgetSource struct {
+	Type string `json:"type"`
+	Id   string `json:"id"`
+}
+
 // Widget is the wire representation of the Bronto Widgets API's Widget
 // schema.
 type Widget struct {
@@ -13,7 +19,7 @@ type Widget struct {
 	Description string            `json:"description"`
 	Type        string            `json:"type"`
 	Aux         json.RawMessage   `json:"aux,omitempty"`
-	MetricIds   []string          `json:"metric_ids"`
+	Sources     []WidgetSource    `json:"sources"`
 	WidgetIds   []string          `json:"widget_ids"`
 	Tags        map[string]string `json:"tags"`
 }
@@ -25,7 +31,7 @@ type WidgetRequest struct {
 	Description string          `json:"description,omitempty"`
 	Type        string          `json:"type"`
 	Aux         json.RawMessage `json:"aux,omitempty"`
-	MetricIds   []string        `json:"metric_ids,omitempty"`
+	Sources     []WidgetSource  `json:"sources,omitempty"`
 	WidgetIds   []string        `json:"widget_ids,omitempty"`
 }
 

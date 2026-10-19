@@ -1,20 +1,27 @@
 package resource_widget
 
 // Hand-written schema and model for the bronto_widget resource. Not run
-// through the tfplugingen pipeline: the aux field needs jsontypes.Normalized
-// and metric_ids/widget_ids need Set semantics (the API doesn't preserve
-// element order, as already found to be true of login_methods on the user
-// resource), neither of which the generator produces automatically.
+// through the tfplugingen pipeline: the aux field needs jsontypes.Normalized,
+// widget_ids needs Set semantics (the API doesn't preserve element order, as
+// already found to be true of login_methods on the user resource), and
+// sources is an ordered list of nested {type, id} objects - none of which
+// the generator produces automatically.
 
 import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+// widgetSourceTypes are the entity kinds a widget source can reference, per
+// the Widgets API's WidgetSource schema.
+var widgetSourceTypes = []string{"metric", "monitor", "slo"}
 
 func WidgetResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
@@ -54,19 +61,38 @@ func WidgetResourceSchema(ctx context.Context) schema.Schema {
 				Description:         "Additional widget configuration, as a JSON-encoded string (e.g. jsonencode({...}))",
 				MarkdownDescription: "Additional widget configuration, as a JSON-encoded string (e.g. `jsonencode({...})`)",
 			},
-			"metric_ids": schema.SetAttribute{
-				ElementType:         types.StringType,
+			"sources": schema.ListNestedAttribute{
 				Optional:            true,
 				Computed:            true,
-				Description:         "The metric IDs associated with the widget. A widget can include either metrics or widgets, but not both.",
-				MarkdownDescription: "The metric IDs associated with the widget. A widget can include either metrics or widgets, but not both.",
+				Description:         "The metrics, monitors, and SLOs that supply data to the widget, in display order. A widget can include either sources or widget_ids, but not both.",
+				MarkdownDescription: "The metrics, monitors, and SLOs that supply data to the widget, in display order. A widget can include either `sources` or `widget_ids`, but not both.",
+				Validators: []validator.List{
+					listvalidator.SizeBetween(0, 20),
+				},
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"type": schema.StringAttribute{
+							Required:            true,
+							Description:         "The kind of entity referenced: metric, monitor, or slo.",
+							MarkdownDescription: "The kind of entity referenced: `metric`, `monitor`, or `slo`.",
+							Validators: []validator.String{
+								stringvalidator.OneOf(widgetSourceTypes...),
+							},
+						},
+						"id": schema.StringAttribute{
+							Required:            true,
+							Description:         "The unique identifier of the referenced metric definition, monitor, or SLO.",
+							MarkdownDescription: "The unique identifier of the referenced metric definition, monitor, or SLO.",
+						},
+					},
+				},
 			},
 			"widget_ids": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
 				Computed:            true,
-				Description:         "The IDs of other widgets included in this (composite) widget. A widget can include either metrics or widgets, but not both.",
-				MarkdownDescription: "The IDs of other widgets included in this (composite) widget. A widget can include either metrics or widgets, but not both.",
+				Description:         "The IDs of other widgets included in this (composite) widget. A widget can include either sources or widget_ids, but not both.",
+				MarkdownDescription: "The IDs of other widgets included in this (composite) widget. A widget can include either `sources` or `widget_ids`, but not both.",
 			},
 			"tags": schema.MapAttribute{
 				ElementType:         types.StringType,
@@ -78,13 +104,31 @@ func WidgetResourceSchema(ctx context.Context) schema.Schema {
 	}
 }
 
+type SourceModel struct {
+	Type types.String `tfsdk:"type"`
+	Id   types.String `tfsdk:"id"`
+}
+
+// sourceObjectType mirrors SourceModel's attribute types. "sources" is
+// Optional+Computed (normalized to an empty, not null, list when the API
+// returns none), which means its value can be entirely unknown during
+// planning - something only a wrapped attr.Value type can represent, unlike
+// a plain []SourceModel slice (see the same reasoning on bronto_metric_
+// definition's "formulas" attribute).
+var sourceObjectType = types.ObjectType{
+	AttrTypes: map[string]attr.Type{
+		"type": types.StringType,
+		"id":   types.StringType,
+	},
+}
+
 type WidgetModel struct {
 	Id          types.String         `tfsdk:"id"`
 	Name        types.String         `tfsdk:"name"`
 	Description types.String         `tfsdk:"description"`
 	Type        types.String         `tfsdk:"type"`
 	Aux         jsontypes.Normalized `tfsdk:"aux"`
-	MetricIds   types.Set            `tfsdk:"metric_ids"`
+	Sources     types.List           `tfsdk:"sources"`
 	WidgetIds   types.Set            `tfsdk:"widget_ids"`
 	Tags        types.Map            `tfsdk:"tags"`
 }
