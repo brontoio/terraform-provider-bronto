@@ -1,0 +1,19 @@
+go mod init terraform-provider-bronto
+touch main.go
+mkdir -p internal/provider
+
+tfplugingen-framework scaffold provider \
+  --name bronto \
+  --output-dir ./internal/provider
+
+go mod tidy
+go install .
+
+# Create a new resource
+tfplugingen-framework scaffold resource --name user --output-dir ./internal/provider
+
+# provider_code_spec.json is now hand-maintained directly (it's no longer
+# generated from an openapi.yaml snapshot - that snapshot drifted from the
+# generated code it was supposed to produce, so edit the spec by hand and
+# regenerate from it instead of regenerating the spec itself).
+tfplugingen-framework generate all --input provider_code_spec.json --output internal/provider
