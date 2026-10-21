@@ -58,11 +58,19 @@ func DashboardResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "The IDs of the metrics (LBMs) associated with the dashboard's layout",
 			},
 			"tags": schema.MapAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				Computed:    true,
+				Description: "A map of key value pairs associated with the dashboard, not including any inherited from the provider's default_tags - see tags_all for the full set. " +
+					"Applied via individual tag API calls, not the dashboard's own create/update endpoints, so each changed key costs a separate request.",
+				MarkdownDescription: "A map of key value pairs associated with the dashboard, not including any inherited from the provider's `default_tags` - see `tags_all` for the full set. " +
+					"Applied via individual tag API calls, not the dashboard's own create/update endpoints, so each changed key costs a separate request.",
+			},
+			"tags_all": schema.MapAttribute{
 				ElementType:         types.StringType,
-				Optional:            true,
 				Computed:            true,
-				Description:         "A map of key value pairs associated with the dashboard. Applied via individual tag API calls, not the dashboard's own create/update endpoints, so each changed key costs a separate request.",
-				MarkdownDescription: "A map of key value pairs associated with the dashboard. Applied via individual tag API calls, not the dashboard's own create/update endpoints, so each changed key costs a separate request.",
+				Description:         "The full set of tags on the dashboard, including both tags and any merged in from the provider's default_tags.",
+				MarkdownDescription: "The full set of tags on the dashboard, including both `tags` and any merged in from the provider's `default_tags`.",
 			},
 		},
 	}
@@ -75,4 +83,5 @@ type DashboardModel struct {
 	WidgetIds       types.Set    `tfsdk:"widget_ids"`
 	LayoutMetricIds types.Set    `tfsdk:"layout_metric_ids"`
 	Tags            types.Map    `tfsdk:"tags"`
+	TagsAll         types.Map    `tfsdk:"tags_all"`
 }

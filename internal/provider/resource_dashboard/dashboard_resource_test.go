@@ -51,8 +51,52 @@ func TestPopulateModelMapsAllFields(t *testing.T) {
 		t.Errorf("LayoutMetricIds = %v", layoutMetricIds)
 	}
 
-	if data.Tags.IsNull() {
-		t.Errorf("Tags should not be null")
+}
+
+func TestPopulateTagsEchoesExplicitPlanValue(t *testing.T) {
+	ctx := context.Background()
+	r := &dashboardResource{client: &bronto.Client{DefaultTags: map[string]string{"managed_by": "terraform"}}}
+
+	planTags, _ := types.MapValueFrom(ctx, types.StringType, map[string]string{"team": "observability"})
+
+	var data DashboardModel
+	diags := r.populateTags(ctx, &data, planTags, map[string]string{"managed_by": "terraform", "team": "observability"})
+	if diags.HasError() {
+		t.Fatalf("populateTags: %v", diags)
+	}
+
+	if !data.Tags.Equal(planTags) {
+		t.Errorf("Tags = %v, want it echoed back as the exact plan value %v", data.Tags, planTags)
+	}
+
+	var tagsAll map[string]string
+	if diags := data.TagsAll.ElementsAs(ctx, &tagsAll, false); diags.HasError() {
+		t.Fatalf("TagsAll.ElementsAs: %v", diags)
+	}
+	if tagsAll["managed_by"] != "terraform" || tagsAll["team"] != "observability" {
+		t.Errorf("TagsAll = %v", tagsAll)
+	}
+}
+
+func TestPopulateTagsDerivesOwnTagsWhenPlanUnset(t *testing.T) {
+	ctx := context.Background()
+	r := &dashboardResource{client: &bronto.Client{DefaultTags: map[string]string{"managed_by": "terraform"}}}
+
+	var data DashboardModel
+	diags := r.populateTags(ctx, &data, types.MapNull(types.StringType), map[string]string{"managed_by": "terraform", "team": "observability"})
+	if diags.HasError() {
+		t.Fatalf("populateTags: %v", diags)
+	}
+
+	var tags map[string]string
+	if diags := data.Tags.ElementsAs(ctx, &tags, false); diags.HasError() {
+		t.Fatalf("Tags.ElementsAs: %v", diags)
+	}
+	if _, hasDefault := tags["managed_by"]; hasDefault {
+		t.Errorf("Tags should exclude the default-derived key, got %v", tags)
+	}
+	if tags["team"] != "observability" {
+		t.Errorf("Tags = %v, want team=observability", tags)
 	}
 }
 

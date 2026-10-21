@@ -33,6 +33,74 @@ func TestDiffTagsCreateUpdateDeleteNoOp(t *testing.T) {
 	}
 }
 
+func TestMergeTagsSpecificWinsOnConflict(t *testing.T) {
+	merged := MergeTags(
+		map[string]string{"team": "platform", "region": "eu"},
+		map[string]string{"team": "observability"},
+	)
+
+	want := map[string]string{"team": "observability", "region": "eu"}
+	if len(merged) != len(want) {
+		t.Fatalf("merged = %v, want %v", merged, want)
+	}
+	for k, v := range want {
+		if merged[k] != v {
+			t.Errorf("merged[%q] = %q, want %q", k, merged[k], v)
+		}
+	}
+}
+
+func TestOwnTagsExcludesMatchingDefaults(t *testing.T) {
+	full := map[string]string{
+		"managed_by": "terraform", // matches default exactly -> excluded
+		"team":       "observability",
+		"overridden": "resource-value", // key exists in defaults, different value -> kept
+	}
+	defaultTags := map[string]string{
+		"managed_by": "terraform",
+		"overridden": "default-value",
+	}
+
+	own := OwnTags(full, defaultTags)
+
+	want := map[string]string{
+		"team":       "observability",
+		"overridden": "resource-value",
+	}
+	if len(own) != len(want) {
+		t.Fatalf("own = %v, want %v", own, want)
+	}
+	for k, v := range want {
+		if own[k] != v {
+			t.Errorf("own[%q] = %q, want %q", k, own[k], v)
+		}
+	}
+}
+
+func TestOwnTagsNilInputs(t *testing.T) {
+	if own := OwnTags(nil, nil); len(own) != 0 {
+		t.Errorf("expected empty map, got %v", own)
+	}
+	if own := OwnTags(map[string]string{"a": "b"}, nil); own["a"] != "b" {
+		t.Errorf("own = %v, want {a: b}", own)
+	}
+	if own := OwnTags(nil, map[string]string{"a": "b"}); len(own) != 0 {
+		t.Errorf("own = %v, want empty", own)
+	}
+}
+
+func TestMergeTagsNilInputs(t *testing.T) {
+	if merged := MergeTags(nil, nil); len(merged) != 0 {
+		t.Errorf("expected empty map, got %v", merged)
+	}
+	if merged := MergeTags(map[string]string{"a": "b"}, nil); merged["a"] != "b" {
+		t.Errorf("merged = %v, want {a: b}", merged)
+	}
+	if merged := MergeTags(nil, map[string]string{"a": "b"}); merged["a"] != "b" {
+		t.Errorf("merged = %v, want {a: b}", merged)
+	}
+}
+
 func TestDiffTagsEmptyBoth(t *testing.T) {
 	toCreate, toUpdate, toDelete := diffTags(nil, nil)
 	if len(toCreate) != 0 || len(toUpdate) != 0 || len(toDelete) != 0 {

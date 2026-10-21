@@ -116,8 +116,14 @@ func UserResourceSchema(ctx context.Context) schema.Schema {
 				ElementType:         types.StringType,
 				Optional:            true,
 				Computed:            true,
-				Description:         "A map of key value pairs associated with the resource. Applied via individual tag API calls, not the user's own create/update endpoints, so each changed key costs a separate request.",
-				MarkdownDescription: "A map of key value pairs associated with the resource. Applied via individual tag API calls, not the user's own create/update endpoints, so each changed key costs a separate request.",
+				Description:         "A map of key value pairs associated with the resource, not including any inherited from the provider's default_tags - see tags_all for the full set. Applied via individual tag API calls, not the user's own create/update endpoints, so each changed key costs a separate request.",
+				MarkdownDescription: "A map of key value pairs associated with the resource, not including any inherited from the provider's default_tags - see tags_all for the full set. Applied via individual tag API calls, not the user's own create/update endpoints, so each changed key costs a separate request.",
+			},
+			"tags_all": schema.MapAttribute{
+				ElementType:         types.StringType,
+				Computed:            true,
+				Description:         "The full set of tags on the user, including both tags and any merged in from the provider's default_tags.",
+				MarkdownDescription: "The full set of tags on the user, including both tags and any merged in from the provider's default_tags.",
 			},
 		},
 		Description: "Manages a Bronto user.",
@@ -137,6 +143,7 @@ type UserModel struct {
 	Roles        types.List   `tfsdk:"roles"`
 	Status       types.String `tfsdk:"status"`
 	Tags         types.Map    `tfsdk:"tags"`
+	TagsAll      types.Map    `tfsdk:"tags_all"`
 }
 
 var _ basetypes.ObjectTypable = LoginMethodsType{}

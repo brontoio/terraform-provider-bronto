@@ -164,7 +164,17 @@
 							"element_type": {
 								"string": {}
 							},
-							"description": "A map of key value pairs associated with the resource. Applied via individual tag API calls, not the user's own create/update endpoints, so each changed key costs a separate request."
+							"description": "A map of key value pairs associated with the resource, not including any inherited from the provider's default_tags - see tags_all for the full set. Applied via individual tag API calls, not the user's own create/update endpoints, so each changed key costs a separate request."
+						}
+					},
+					{
+						"name": "tags_all",
+						"map": {
+							"computed_optional_required": "computed",
+							"element_type": {
+								"string": {}
+							},
+							"description": "The full set of tags on the user, including both tags and any merged in from the provider's default_tags."
 						}
 					}
 				]

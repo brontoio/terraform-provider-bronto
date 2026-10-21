@@ -28,6 +28,13 @@ provider "bronto" {
   # BRONTO_API_KEY environment variables.
   endpoint = "https://api.eu.bronto.io"
   api_key  = var.bronto_api_key
+
+  # Optional: merged into every taggable resource's own tags (bronto_user,
+  # bronto_dashboard, bronto_widget), with each resource's own tags winning
+  # on key conflicts.
+  default_tags = {
+    managed_by = "terraform"
+  }
 }
 
 # Managing multiple orgs (e.g. a root org and a child org, each with their
@@ -58,3 +65,7 @@ resource "bronto_user" "example" {
 
 - `api_key` (String, Sensitive) The API key used to authenticate with the Bronto API. Can also be set via the `BRONTO_API_KEY` environment variable.
 - `endpoint` (String) The base URL of the Bronto API to use, e.g. `https://api.eu.bronto.io`. Can also be set via the `BRONTO_ENDPOINT` environment variable.
+
+### Optional
+
+- `default_tags` (Map of String) Tags merged into every taggable resource (`bronto_user`, `bronto_dashboard`, `bronto_widget`), with each resource's own `tags` winning on key conflicts. Applied only when a resource is created or updated - changing `default_tags` doesn't retroactively resync tags on resources that aren't otherwise being changed.

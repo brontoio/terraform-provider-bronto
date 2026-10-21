@@ -11,6 +11,13 @@ provider "bronto" {
   # BRONTO_API_KEY environment variables.
   endpoint = "https://api.eu.bronto.io"
   api_key  = var.bronto_api_key
+
+  # Optional: merged into every taggable resource's own tags (bronto_user,
+  # bronto_dashboard, bronto_widget), with each resource's own tags winning
+  # on key conflicts.
+  default_tags = {
+    managed_by = "terraform"
+  }
 }
 
 # Managing multiple orgs (e.g. a root org and a child org, each with their
