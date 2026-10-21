@@ -44,6 +44,9 @@ func MetricDefinitionResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				Description:         "The unique identifier for the metric definition",
 				MarkdownDescription: "The unique identifier for the metric definition",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"name": schema.StringAttribute{
 				Optional:            true,
