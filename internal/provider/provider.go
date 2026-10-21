@@ -4,10 +4,13 @@ import (
 	"context"
 	"os"
 	bronto "terraform-provider-bronto/internal"
+	"terraform-provider-bronto/internal/provider/datasource_slack_workspaces"
 	"terraform-provider-bronto/internal/provider/datasource_user"
 	"terraform-provider-bronto/internal/provider/resource_dashboard"
 	"terraform-provider-bronto/internal/provider/resource_metric_definition"
+	"terraform-provider-bronto/internal/provider/resource_slack_integration"
 	"terraform-provider-bronto/internal/provider/resource_user"
+	"terraform-provider-bronto/internal/provider/resource_webhook_integration"
 	"terraform-provider-bronto/internal/provider/resource_widget"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -44,8 +47,14 @@ type brontoProvider struct {
 
 func (p *brontoProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description:         "Interact with the Bronto API.",
-		MarkdownDescription: "Interact with the [Bronto](https://bronto.io) API.",
+		Description: "Manage Bronto (https://bronto.io) resources as code: users, dashboards, widgets, metric definitions, and Slack/webhook integrations. " +
+			"Multiple orgs (e.g. a root org and a child org, each with their own API key) can be managed from one configuration by declaring " +
+			"multiple aliased instances of this provider and pointing each resource at the right one with provider = bronto.<alias> - see the " +
+			"example below.",
+		MarkdownDescription: "Manage [Bronto](https://bronto.io) resources as code: users, dashboards, widgets, metric definitions, and Slack/webhook integrations.\n\n" +
+			"Multiple orgs (e.g. a root org and a child org, each with their own API key) can be managed from one configuration by declaring " +
+			"multiple aliased instances of this provider and pointing each resource at the right one with `provider = bronto.<alias>` - see the " +
+			"example below.",
 		Attributes: map[string]schema.Attribute{
 			"endpoint": schema.StringAttribute{
 				Required:            true,
@@ -163,6 +172,7 @@ func (p *brontoProvider) Metadata(ctx context.Context, req provider.MetadataRequ
 func (p *brontoProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		datasource_user.NewUserDataSource,
+		datasource_slack_workspaces.NewSlackWorkspacesDataSource,
 	}
 }
 
@@ -172,5 +182,7 @@ func (p *brontoProvider) Resources(ctx context.Context) []func() resource.Resour
 		resource_widget.NewWidgetResource,
 		resource_dashboard.NewDashboardResource,
 		resource_metric_definition.NewMetricDefinitionResource,
+		resource_slack_integration.NewSlackIntegrationResource,
+		resource_webhook_integration.NewWebhookIntegrationResource,
 	}
 }

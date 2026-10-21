@@ -48,6 +48,9 @@ func UserResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				Description:         "The unique identifier for the user",
 				MarkdownDescription: "The unique identifier for the user",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"invited_at": schema.Int64Attribute{
 				Computed:            true,
