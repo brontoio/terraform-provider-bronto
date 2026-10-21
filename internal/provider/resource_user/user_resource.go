@@ -324,7 +324,14 @@ func (r *userResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	// method, so always syncing would add a GET on every user update just
 	// to pick up default_tags drift, which isn't free here.
 	if !plan.Tags.Equal(state.Tags) {
-		currentTags, diags := extractStringMap(ctx, state.Tags)
+		// currentTags MUST come from state.TagsAll (the full set last read
+		// from the API), not state.Tags (now only "own" tags, excluding
+		// anything matched to a default - see populateTags). Diffing
+		// against state.Tags would make every default-contributed key look
+		// new on every update, since it was never in state.Tags to begin
+		// with, and SyncTags would try to re-create a tag that already
+		// exists (409 Conflict).
+		currentTags, diags := extractStringMap(ctx, state.TagsAll)
 		resp.Diagnostics.Append(diags...)
 		specificTags, diags2 := extractStringMap(ctx, plan.Tags)
 		resp.Diagnostics.Append(diags2...)

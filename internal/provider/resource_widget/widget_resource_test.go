@@ -63,6 +63,33 @@ func TestPopulateModelMapsAllFields(t *testing.T) {
 	}
 }
 
+func TestUpdateTagSyncCurrentTagsComesFromTagsAll(t *testing.T) {
+	ctx := context.Background()
+	defaultTags := map[string]string{"managed_by": "terraform"}
+	r := &widgetResource{client: &bronto.Client{DefaultTags: defaultTags}}
+
+	stateTagsAll, _ := types.MapValueFrom(ctx, types.StringType, map[string]string{
+		"managed_by": "terraform",
+		"team":       "observability",
+	})
+	planTags := types.MapNull(types.StringType) // config doesn't declare its own tags
+
+	currentTags, diags := extractStringMap(ctx, stateTagsAll)
+	if diags.HasError() {
+		t.Fatalf("extractStringMap(TagsAll): %v", diags)
+	}
+	specificTags, diags := extractStringMap(ctx, planTags)
+	if diags.HasError() {
+		t.Fatalf("extractStringMap(Tags): %v", diags)
+	}
+	desiredTags := bronto.MergeTags(r.client.DefaultTags, specificTags)
+
+	if currentTags["managed_by"] != desiredTags["managed_by"] {
+		t.Fatalf("currentTags[managed_by] = %q, desiredTags[managed_by] = %q - SyncTags would wrongly try to re-create an existing tag",
+			currentTags["managed_by"], desiredTags["managed_by"])
+	}
+}
+
 func TestPopulateTagsEchoesExplicitPlanValue(t *testing.T) {
 	ctx := context.Background()
 	r := &widgetResource{client: &bronto.Client{DefaultTags: map[string]string{"managed_by": "terraform"}}}

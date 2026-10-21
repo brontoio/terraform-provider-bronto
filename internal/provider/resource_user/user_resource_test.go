@@ -4,8 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	bronto "terraform-provider-bronto/internal"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func TestLoginMethodsRoundTrip(t *testing.T) {
@@ -148,6 +149,33 @@ func TestPopulateModelInactiveStatus(t *testing.T) {
 	}
 	if !data.InvitedBy.IsNull() {
 		t.Errorf("InvitedBy should be null when the API omits it")
+	}
+}
+
+func TestUpdateTagSyncCurrentTagsComesFromTagsAll(t *testing.T) {
+	ctx := context.Background()
+	defaultTags := map[string]string{"managed_by": "terraform"}
+	r := &userResource{client: &bronto.Client{DefaultTags: defaultTags}}
+
+	stateTagsAll, _ := types.MapValueFrom(ctx, types.StringType, map[string]string{
+		"managed_by": "terraform",
+		"team":       "observability",
+	})
+	planTags := types.MapNull(types.StringType) // config doesn't declare its own tags
+
+	currentTags, diags := extractStringMap(ctx, stateTagsAll)
+	if diags.HasError() {
+		t.Fatalf("extractStringMap(TagsAll): %v", diags)
+	}
+	specificTags, diags := extractStringMap(ctx, planTags)
+	if diags.HasError() {
+		t.Fatalf("extractStringMap(Tags): %v", diags)
+	}
+	desiredTags := bronto.MergeTags(r.client.DefaultTags, specificTags)
+
+	if currentTags["managed_by"] != desiredTags["managed_by"] {
+		t.Fatalf("currentTags[managed_by] = %q, desiredTags[managed_by] = %q - SyncTags would wrongly try to re-create an existing tag",
+			currentTags["managed_by"], desiredTags["managed_by"])
 	}
 }
 

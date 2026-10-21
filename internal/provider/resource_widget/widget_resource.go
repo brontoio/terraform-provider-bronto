@@ -197,7 +197,14 @@ func (r *widgetResource) Update(ctx context.Context, req resource.UpdateRequest,
 	// a default_tags change on the provider also gets picked up whenever
 	// this resource is updated for any other reason, not just when its own
 	// tags change.
-	currentTags, diags := extractStringMap(ctx, state.Tags)
+	//
+	// currentTags MUST come from state.TagsAll (the full set last read from
+	// the API), not state.Tags (now only "own" tags, excluding anything
+	// matched to a default - see populateTags). Diffing against state.Tags
+	// would make every default-contributed key look new on every update,
+	// since it was never in state.Tags to begin with, and SyncTags would
+	// try to re-create a tag that already exists (409 Conflict).
+	currentTags, diags := extractStringMap(ctx, state.TagsAll)
 	resp.Diagnostics.Append(diags...)
 	specificTags, diags2 := extractStringMap(ctx, plan.Tags)
 	resp.Diagnostics.Append(diags2...)
