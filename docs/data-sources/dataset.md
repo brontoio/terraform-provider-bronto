@@ -56,7 +56,6 @@ Read-Only:
 - `created_by` (Attributes) The actor who created the dataset. (see [below for nested schema](#nestedatt--metadata--created_by))
 - `deleted_at` (Number) Deletion timestamp in milliseconds since epoch.
 - `deleted_by` (Attributes) The actor who deleted the dataset. (see [below for nested schema](#nestedatt--metadata--deleted_by))
-- `last_heartbeat_at` (Number) Timestamp of the last heartbeat in milliseconds since epoch, rounded to the start of the day. Delayed by up to 24 hours; not a liveness check.
 - `modified_at` (Number) Last update timestamp in milliseconds since epoch.
 - `modified_by` (Attributes) The actor who last updated the dataset. (see [below for nested schema](#nestedatt--metadata--modified_by))
 

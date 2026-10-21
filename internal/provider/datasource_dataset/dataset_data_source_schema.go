@@ -102,13 +102,6 @@ func DatasetDataSourceSchema(ctx context.Context) schema.Schema {
 						MarkdownDescription: "The actor who deleted the dataset.",
 						Attributes:          identityAttributes,
 					},
-					"last_heartbeat_at": schema.Int64Attribute{
-						Computed: true,
-						Description: "Timestamp of the last heartbeat in milliseconds since epoch, rounded to the start of the day. " +
-							"Delayed by up to 24 hours; not a liveness check.",
-						MarkdownDescription: "Timestamp of the last heartbeat in milliseconds since epoch, rounded to the start of the day. " +
-							"Delayed by up to 24 hours; not a liveness check.",
-					},
 				},
 			},
 		},
@@ -121,13 +114,12 @@ type IdentityModel struct {
 }
 
 type MetadataModel struct {
-	CreatedAt       types.Int64    `tfsdk:"created_at"`
-	CreatedBy       *IdentityModel `tfsdk:"created_by"`
-	ModifiedAt      types.Int64    `tfsdk:"modified_at"`
-	ModifiedBy      *IdentityModel `tfsdk:"modified_by"`
-	DeletedAt       types.Int64    `tfsdk:"deleted_at"`
-	DeletedBy       *IdentityModel `tfsdk:"deleted_by"`
-	LastHeartbeatAt types.Int64    `tfsdk:"last_heartbeat_at"`
+	CreatedAt  types.Int64    `tfsdk:"created_at"`
+	CreatedBy  *IdentityModel `tfsdk:"created_by"`
+	ModifiedAt types.Int64    `tfsdk:"modified_at"`
+	ModifiedBy *IdentityModel `tfsdk:"modified_by"`
+	DeletedAt  types.Int64    `tfsdk:"deleted_at"`
+	DeletedBy  *IdentityModel `tfsdk:"deleted_by"`
 }
 
 type DatasetModel struct {

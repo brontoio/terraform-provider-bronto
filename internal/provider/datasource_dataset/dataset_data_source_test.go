@@ -11,7 +11,6 @@ func TestPopulateModelMapsAllFields(t *testing.T) {
 	ctx := context.Background()
 
 	createdAt := int64(1709251200000)
-	lastHeartbeat := int64(1791331200000)
 
 	d := bronto.Dataset{
 		Id:                   "dataset-1",
@@ -22,9 +21,8 @@ func TestPopulateModelMapsAllFields(t *testing.T) {
 		ParserId:             "parser-1",
 		ParserMatchingExempt: true,
 		Metadata: &bronto.DatasetMetadata{
-			CreatedAt:       &createdAt,
-			CreatedBy:       &bronto.Identity{Type: "USER_ID", Id: "user-1"},
-			LastHeartbeatAt: &lastHeartbeat,
+			CreatedAt: &createdAt,
+			CreatedBy: &bronto.Identity{Type: "USER_ID", Id: "user-1"},
 		},
 	}
 

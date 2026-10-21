@@ -14,13 +14,12 @@ type Identity struct {
 
 // DatasetMetadata is the common metadata attached to a Dataset.
 type DatasetMetadata struct {
-	CreatedAt       *int64    `json:"created_at,omitempty"`
-	CreatedBy       *Identity `json:"created_by,omitempty"`
-	ModifiedAt      *int64    `json:"modified_at,omitempty"`
-	ModifiedBy      *Identity `json:"modified_by,omitempty"`
-	DeletedAt       *int64    `json:"deleted_at,omitempty"`
-	DeletedBy       *Identity `json:"deleted_by,omitempty"`
-	LastHeartbeatAt *int64    `json:"last_heartbeat_at,omitempty"`
+	CreatedAt  *int64    `json:"created_at,omitempty"`
+	CreatedBy  *Identity `json:"created_by,omitempty"`
+	ModifiedAt *int64    `json:"modified_at,omitempty"`
+	ModifiedBy *Identity `json:"modified_by,omitempty"`
+	DeletedAt  *int64    `json:"deleted_at,omitempty"`
+	DeletedBy  *Identity `json:"deleted_by,omitempty"`
 }
 
 // Dataset is the wire representation of the Datasets API's Dataset schema.

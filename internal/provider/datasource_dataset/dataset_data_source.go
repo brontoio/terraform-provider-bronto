@@ -182,13 +182,12 @@ func toMetadataModel(m *bronto.DatasetMetadata) *MetadataModel {
 	}
 
 	return &MetadataModel{
-		CreatedAt:       int64PtrValue(m.CreatedAt),
-		CreatedBy:       toIdentityModel(m.CreatedBy),
-		ModifiedAt:      int64PtrValue(m.ModifiedAt),
-		ModifiedBy:      toIdentityModel(m.ModifiedBy),
-		DeletedAt:       int64PtrValue(m.DeletedAt),
-		DeletedBy:       toIdentityModel(m.DeletedBy),
-		LastHeartbeatAt: int64PtrValue(m.LastHeartbeatAt),
+		CreatedAt:  int64PtrValue(m.CreatedAt),
+		CreatedBy:  toIdentityModel(m.CreatedBy),
+		ModifiedAt: int64PtrValue(m.ModifiedAt),
+		ModifiedBy: toIdentityModel(m.ModifiedBy),
+		DeletedAt:  int64PtrValue(m.DeletedAt),
+		DeletedBy:  toIdentityModel(m.DeletedBy),
 	}
 }
 
