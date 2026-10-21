@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	bronto "terraform-provider-bronto/internal"
+	"terraform-provider-bronto/internal/provider/datasource_dataset"
 	"terraform-provider-bronto/internal/provider/datasource_slack_workspaces"
 	"terraform-provider-bronto/internal/provider/datasource_user"
 	"terraform-provider-bronto/internal/provider/resource_dashboard"
@@ -173,6 +174,7 @@ func (p *brontoProvider) DataSources(ctx context.Context) []func() datasource.Da
 	return []func() datasource.DataSource{
 		datasource_user.NewUserDataSource,
 		datasource_slack_workspaces.NewSlackWorkspacesDataSource,
+		datasource_dataset.NewDatasetDataSource,
 	}
 }
 
