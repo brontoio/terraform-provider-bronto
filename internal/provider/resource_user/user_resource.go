@@ -165,11 +165,12 @@ func (r *userResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 	// 7. The create endpoint doesn't accept tags either; the only way to set
 	// them is one /tags API call per key.
-	desiredTags, diags := extractStringMap(ctx, plan.Tags)
+	specificTags, diags := extractStringMap(ctx, plan.Tags)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	desiredTags := bronto.MergeTags(r.client.DefaultTags, specificTags)
 
 	if len(desiredTags) > 0 {
 		if err := r.client.SyncTags(ctx, "user", createResp.Id, nil, desiredTags); err != nil {
@@ -200,6 +201,7 @@ func (r *userResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 	// 8. Save Terraform state
 	resp.Diagnostics.Append(populateModel(ctx, &plan, createResp)...)
+	resp.Diagnostics.Append(r.populateTags(ctx, &plan, plan.Tags, createResp.Tags)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -245,6 +247,7 @@ func (r *userResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 	// 5. Save Terraform state
 	resp.Diagnostics.Append(populateModel(ctx, &data, readResp)...)
+	resp.Diagnostics.Append(r.populateTags(ctx, &data, types.MapNull(types.StringType), readResp.Tags)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -315,15 +318,27 @@ func (r *userResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 	// 6. Sync tags, if changed. The user's own update endpoint doesn't
 	// accept tags; the only way to change them is one /tags API call per
-	// changed key.
+	// changed key. Unlike widget/dashboard, this stays gated on an actual
+	// tags change (rather than always running) because - unlike those two
+	// - the re-fetch below isn't already unconditional elsewhere in this
+	// method, so always syncing would add a GET on every user update just
+	// to pick up default_tags drift, which isn't free here.
 	if !plan.Tags.Equal(state.Tags) {
-		currentTags, diags := extractStringMap(ctx, state.Tags)
+		// currentTags MUST come from state.TagsAll (the full set last read
+		// from the API), not state.Tags (now only "own" tags, excluding
+		// anything matched to a default - see populateTags). Diffing
+		// against state.Tags would make every default-contributed key look
+		// new on every update, since it was never in state.Tags to begin
+		// with, and SyncTags would try to re-create a tag that already
+		// exists (409 Conflict).
+		currentTags, diags := extractStringMap(ctx, state.TagsAll)
 		resp.Diagnostics.Append(diags...)
-		desiredTags, diags2 := extractStringMap(ctx, plan.Tags)
+		specificTags, diags2 := extractStringMap(ctx, plan.Tags)
 		resp.Diagnostics.Append(diags2...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
+		desiredTags := bronto.MergeTags(r.client.DefaultTags, specificTags)
 
 		if err := r.client.SyncTags(ctx, "user", userId, currentTags, desiredTags); err != nil {
 			resp.Diagnostics.AddError(
@@ -353,6 +368,7 @@ func (r *userResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 	// 7. Save Terraform state
 	resp.Diagnostics.Append(populateModel(ctx, &plan, updateResp)...)
+	resp.Diagnostics.Append(r.populateTags(ctx, &plan, plan.Tags, updateResp.Tags)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -545,10 +561,6 @@ func populateModel(ctx context.Context, data *UserModel, api bronto.User) diag.D
 		data.InvitedBy = types.StringNull()
 	}
 
-	tagsVal, tagsDiags := types.MapValueFrom(ctx, types.StringType, api.Tags)
-	diags.Append(tagsDiags...)
-	data.Tags = tagsVal
-
 	lastLoginsVal, lastLoginsDiags := types.MapValueFrom(ctx, types.Int64Type, api.LastLogins)
 	diags.Append(lastLoginsDiags...)
 	data.LastLogins = lastLoginsVal
@@ -557,6 +569,32 @@ func populateModel(ctx context.Context, data *UserModel, api bronto.User) diag.D
 	diags.Append(loginMethodsDiags...)
 	data.LoginMethods = loginMethodsVal
 
+	return diags
+}
+
+// populateTags sets data.TagsAll to the full tag set from the API, and
+// data.Tags to either the plan's own explicit value (left untouched - it's
+// already known to be exactly what's in config, and echoing it back is the
+// only way to avoid "provider produced inconsistent result" when
+// default_tags adds keys the config never declared) or, when the plan
+// didn't declare any tags of its own (planTags null/unknown, as is always
+// the case on Read, which has no plan to consult), a best-effort
+// reconstruction of "the tags not explained by default_tags".
+func (r *userResource) populateTags(ctx context.Context, data *UserModel, planTags types.Map, apiTags map[string]string) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	tagsAllVal, tagsAllDiags := stringMapValue(ctx, apiTags)
+	diags.Append(tagsAllDiags...)
+	data.TagsAll = tagsAllVal
+
+	if !planTags.IsNull() && !planTags.IsUnknown() {
+		data.Tags = planTags
+		return diags
+	}
+
+	tagsVal, tagsDiags := stringMapValue(ctx, bronto.OwnTags(apiTags, r.client.DefaultTags))
+	diags.Append(tagsDiags...)
+	data.Tags = tagsVal
 	return diags
 }
 
@@ -570,6 +608,18 @@ func extractStringMap(ctx context.Context, m types.Map) (map[string]string, diag
 	var values map[string]string
 	diags.Append(m.ElementsAs(ctx, &values, false)...)
 	return values, diags
+}
+
+// stringMapValue converts a map[string]string into a types.Map, normalizing
+// a nil map to an empty (but non-null) map first, so an Optional+Computed
+// attribute doesn't flip between null and an empty map depending on whether
+// the API responds with an absent field or an empty object for the same
+// "no values" state.
+func stringMapValue(ctx context.Context, values map[string]string) (types.Map, diag.Diagnostics) {
+	if values == nil {
+		values = map[string]string{}
+	}
+	return types.MapValueFrom(ctx, types.StringType, values)
 }
 
 func extractStringList(l []string) basetypes.ListValue {

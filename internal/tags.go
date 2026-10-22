@@ -57,6 +57,44 @@ func (c *Client) DeleteTag(ctx context.Context, entityType, entityId, name strin
 	return c.DeleteRequestWithBody(ctx, body, "/tags")
 }
 
+// MergeTags merges the provider's default_tags with a resource's own tags,
+// with the resource's own tags winning on key conflicts. Either map may be
+// nil.
+func MergeTags(defaultTags, specific map[string]string) map[string]string {
+	merged := make(map[string]string, len(defaultTags)+len(specific))
+	for k, v := range defaultTags {
+		merged[k] = v
+	}
+	for k, v := range specific {
+		merged[k] = v
+	}
+	return merged
+}
+
+// OwnTags is the inverse of MergeTags: given the full tag set currently on
+// an entity, it returns the subset not explained by defaultTags - i.e. it
+// excludes any key whose value exactly matches the current default_tags
+// value for that key. This is a best-effort heuristic, only used when
+// reconstructing "what's mine" from a bare GET (on Read, with no plan to
+// compare against - Create/Update already know the resource's own tags
+// directly from the plan and don't need this). If a resource's own tag
+// coincidentally has both the same key and value as a default, it will be
+// misclassified as default-derived and omitted here; that's an inherent
+// limitation of the approach (the same one the AWS/GCP Terraform providers
+// document for their own default_tags/tags_all split), not something a
+// smarter algorithm can fully resolve without the API itself tracking
+// tag provenance.
+func OwnTags(full, defaultTags map[string]string) map[string]string {
+	own := make(map[string]string, len(full))
+	for k, v := range full {
+		if defaultValue, isDefault := defaultTags[k]; isDefault && defaultValue == v {
+			continue
+		}
+		own[k] = v
+	}
+	return own
+}
+
 // diffTags compares the currently-applied tags against the desired tags and
 // returns which keys need to be created, which need their value updated,
 // and which need to be removed, to reconcile the two. Tag name is unique

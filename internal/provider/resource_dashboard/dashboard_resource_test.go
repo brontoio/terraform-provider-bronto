@@ -51,8 +51,79 @@ func TestPopulateModelMapsAllFields(t *testing.T) {
 		t.Errorf("LayoutMetricIds = %v", layoutMetricIds)
 	}
 
-	if data.Tags.IsNull() {
-		t.Errorf("Tags should not be null")
+}
+
+func TestUpdateTagSyncCurrentTagsComesFromTagsAll(t *testing.T) {
+	ctx := context.Background()
+	defaultTags := map[string]string{"managed_by": "terraform"}
+	r := &dashboardResource{client: &bronto.Client{DefaultTags: defaultTags}}
+
+	stateTagsAll, _ := types.MapValueFrom(ctx, types.StringType, map[string]string{
+		"managed_by": "terraform",
+		"team":       "observability",
+	})
+	planTags := types.MapNull(types.StringType) // config doesn't declare its own tags
+
+	currentTags, diags := extractStringMap(ctx, stateTagsAll)
+	if diags.HasError() {
+		t.Fatalf("extractStringMap(TagsAll): %v", diags)
+	}
+	specificTags, diags := extractStringMap(ctx, planTags)
+	if diags.HasError() {
+		t.Fatalf("extractStringMap(Tags): %v", diags)
+	}
+	desiredTags := bronto.MergeTags(r.client.DefaultTags, specificTags)
+
+	if currentTags["managed_by"] != desiredTags["managed_by"] {
+		t.Fatalf("currentTags[managed_by] = %q, desiredTags[managed_by] = %q - SyncTags would wrongly try to re-create an existing tag",
+			currentTags["managed_by"], desiredTags["managed_by"])
+	}
+}
+
+func TestPopulateTagsEchoesExplicitPlanValue(t *testing.T) {
+	ctx := context.Background()
+	r := &dashboardResource{client: &bronto.Client{DefaultTags: map[string]string{"managed_by": "terraform"}}}
+
+	planTags, _ := types.MapValueFrom(ctx, types.StringType, map[string]string{"team": "observability"})
+
+	var data DashboardModel
+	diags := r.populateTags(ctx, &data, planTags, map[string]string{"managed_by": "terraform", "team": "observability"})
+	if diags.HasError() {
+		t.Fatalf("populateTags: %v", diags)
+	}
+
+	if !data.Tags.Equal(planTags) {
+		t.Errorf("Tags = %v, want it echoed back as the exact plan value %v", data.Tags, planTags)
+	}
+
+	var tagsAll map[string]string
+	if diags := data.TagsAll.ElementsAs(ctx, &tagsAll, false); diags.HasError() {
+		t.Fatalf("TagsAll.ElementsAs: %v", diags)
+	}
+	if tagsAll["managed_by"] != "terraform" || tagsAll["team"] != "observability" {
+		t.Errorf("TagsAll = %v", tagsAll)
+	}
+}
+
+func TestPopulateTagsDerivesOwnTagsWhenPlanUnset(t *testing.T) {
+	ctx := context.Background()
+	r := &dashboardResource{client: &bronto.Client{DefaultTags: map[string]string{"managed_by": "terraform"}}}
+
+	var data DashboardModel
+	diags := r.populateTags(ctx, &data, types.MapNull(types.StringType), map[string]string{"managed_by": "terraform", "team": "observability"})
+	if diags.HasError() {
+		t.Fatalf("populateTags: %v", diags)
+	}
+
+	var tags map[string]string
+	if diags := data.Tags.ElementsAs(ctx, &tags, false); diags.HasError() {
+		t.Fatalf("Tags.ElementsAs: %v", diags)
+	}
+	if _, hasDefault := tags["managed_by"]; hasDefault {
+		t.Errorf("Tags should exclude the default-derived key, got %v", tags)
+	}
+	if tags["team"] != "observability" {
+		t.Errorf("Tags = %v, want team=observability", tags)
 	}
 }
 

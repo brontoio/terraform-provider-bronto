@@ -50,13 +50,14 @@ resource "bronto_dashboard" "application_performance" {
 ### Optional
 
 - `layout_metric_ids` (Set of String) The IDs of the metrics (LBMs) associated with the dashboard's layout
-- `tags` (Map of String) A map of key value pairs associated with the dashboard. Applied via individual tag API calls, not the dashboard's own create/update endpoints, so each changed key costs a separate request.
+- `tags` (Map of String) A map of key value pairs associated with the dashboard, not including any inherited from the provider's `default_tags` - see `tags_all` for the full set. Applied via individual tag API calls, not the dashboard's own create/update endpoints, so each changed key costs a separate request.
 - `widget_ids` (Set of String) The IDs of the widgets attached to this dashboard
 
 ### Read-Only
 
 - `description` (String) The description of the dashboard. The API does not currently support setting this on create or update.
 - `id` (String) The unique identifier for the dashboard
+- `tags_all` (Map of String) The full set of tags on the dashboard, including both `tags` and any merged in from the provider's `default_tags`.
 
 ## Import
 

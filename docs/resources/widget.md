@@ -61,12 +61,13 @@ resource "bronto_widget" "overview_group" {
 - `aux` (String) Additional widget configuration, as a JSON-encoded string (e.g. `jsonencode({...})`)
 - `description` (String) The widget description
 - `sources` (Attributes List) The metrics, monitors, and SLOs that supply data to the widget, in display order. A widget can include either `sources` or `widget_ids`, but not both. (see [below for nested schema](#nestedatt--sources))
-- `tags` (Map of String) A map of key value pairs associated with the widget. Applied via individual tag API calls, not the widget's own create/update endpoints, so each changed key costs a separate request.
+- `tags` (Map of String) A map of key value pairs associated with the widget, not including any inherited from the provider's `default_tags` - see `tags_all` for the full set. Applied via individual tag API calls, not the widget's own create/update endpoints, so each changed key costs a separate request.
 - `widget_ids` (Set of String) The IDs of other widgets included in this (composite) widget. A widget can include either `sources` or `widget_ids`, but not both.
 
 ### Read-Only
 
 - `id` (String) The unique identifier for the widget
+- `tags_all` (Map of String) The full set of tags on the widget, including both `tags` and any merged in from the provider's `default_tags`.
 
 <a id="nestedatt--sources"></a>
 ### Nested Schema for `sources`

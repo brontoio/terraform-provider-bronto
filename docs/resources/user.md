@@ -60,7 +60,7 @@ resource "bronto_user" "on_leave" {
 
 - `active` (Boolean) Whether the user account is active. Set to false to deactivate the user, or true to reactivate a previously deactivated user. Deactivating a user that has never been activated (e.g. status INVITED) has no effect.
 - `login_methods` (Attributes Set) Per-user overrides for enabling or disabling specific login methods (see [below for nested schema](#nestedatt--login_methods))
-- `tags` (Map of String) A map of key value pairs associated with the resource. Applied via individual tag API calls, not the user's own create/update endpoints, so each changed key costs a separate request.
+- `tags` (Map of String) A map of key value pairs associated with the resource, not including any inherited from the provider's default_tags - see tags_all for the full set. Applied via individual tag API calls, not the user's own create/update endpoints, so each changed key costs a separate request.
 
 ### Read-Only
 
@@ -69,6 +69,7 @@ resource "bronto_user" "on_leave" {
 - `invited_by` (String) Identifier for the user who sent the latest invitation
 - `last_logins` (Map of Number) A map of login methods to their last login timestamps (Unix epoch).
 - `status` (String) Current status of the user
+- `tags_all` (Map of String) The full set of tags on the user, including both tags and any merged in from the provider's default_tags.
 
 <a id="nestedatt--login_methods"></a>
 ### Nested Schema for `login_methods`

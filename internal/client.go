@@ -14,9 +14,10 @@ import (
 
 // Client -
 type Client struct {
-	BaseURL    string
-	HTTPClient *http.Client
-	ApiKey     string
+	BaseURL     string
+	HTTPClient  *http.Client
+	ApiKey      string
+	DefaultTags map[string]string
 }
 
 type APIError struct {

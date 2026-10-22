@@ -117,11 +117,12 @@ func (r *dashboardResource) Create(ctx context.Context, req resource.CreateReque
 
 	// The create endpoint doesn't accept tags either; the only way to set
 	// them is one /tags API call per key.
-	desiredTags, diags := extractStringMap(ctx, plan.Tags)
+	specificTags, diags := extractStringMap(ctx, plan.Tags)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	desiredTags := bronto.MergeTags(r.client.DefaultTags, specificTags)
 
 	if len(desiredTags) > 0 {
 		if err := r.client.SyncTags(ctx, "dashboard", created.Id, nil, desiredTags); err != nil {
@@ -145,6 +146,7 @@ func (r *dashboardResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	resp.Diagnostics.Append(populateModel(ctx, &plan, created)...)
+	resp.Diagnostics.Append(r.populateTags(ctx, &plan, plan.Tags, created.Tags)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -170,6 +172,7 @@ func (r *dashboardResource) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 
 	resp.Diagnostics.Append(populateModel(ctx, &data, d)...)
+	resp.Diagnostics.Append(r.populateTags(ctx, &data, types.MapNull(types.StringType), d.Tags)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -266,22 +269,33 @@ func (r *dashboardResource) Update(ctx context.Context, req resource.UpdateReque
 		}
 	}
 
-	if !plan.Tags.Equal(state.Tags) {
-		currentTags, diags := extractStringMap(ctx, state.Tags)
-		resp.Diagnostics.Append(diags...)
-		desiredTags, diags2 := extractStringMap(ctx, plan.Tags)
-		resp.Diagnostics.Append(diags2...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
+	// Always reconcile tags, even if plan.Tags == state.Tags: SyncTags is a
+	// no-op (zero API calls) when nothing's actually changed, but this way
+	// a default_tags change on the provider also gets picked up whenever
+	// this resource is updated for any other reason, not just when its own
+	// tags change.
+	//
+	// currentTags MUST come from state.TagsAll (the full set last read from
+	// the API), not state.Tags (now only "own" tags, excluding anything
+	// matched to a default - see populateTags). Diffing against state.Tags
+	// would make every default-contributed key look new on every update,
+	// since it was never in state.Tags to begin with, and SyncTags would
+	// try to re-create a tag that already exists (409 Conflict).
+	currentTags, diags := extractStringMap(ctx, state.TagsAll)
+	resp.Diagnostics.Append(diags...)
+	specificTags, diags2 := extractStringMap(ctx, plan.Tags)
+	resp.Diagnostics.Append(diags2...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	desiredTags := bronto.MergeTags(r.client.DefaultTags, specificTags)
 
-		if err := r.client.SyncTags(ctx, "dashboard", dashboardId, currentTags, desiredTags); err != nil {
-			resp.Diagnostics.AddError(
-				"Unable to Update Resource",
-				"An unexpected error occurred while syncing dashboard tags. Error: "+err.Error(),
-			)
-			return
-		}
+	if err := r.client.SyncTags(ctx, "dashboard", dashboardId, currentTags, desiredTags); err != nil {
+		resp.Diagnostics.AddError(
+			"Unable to Update Resource",
+			"An unexpected error occurred while syncing dashboard tags. Error: "+err.Error(),
+		)
+		return
 	}
 
 	updated, err := r.getDashboard(ctx, dashboardId)
@@ -294,6 +308,7 @@ func (r *dashboardResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	resp.Diagnostics.Append(populateModel(ctx, &plan, updated)...)
+	resp.Diagnostics.Append(r.populateTags(ctx, &plan, plan.Tags, updated.Tags)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -364,10 +379,32 @@ func populateModel(ctx context.Context, data *DashboardModel, d bronto.Dashboard
 	diags.Append(layoutDiags...)
 	data.LayoutMetricIds = layoutVal
 
-	tagsVal, tagsDiags := types.MapValueFrom(ctx, types.StringType, d.Tags)
+	return diags
+}
+
+// populateTags sets data.TagsAll to the full tag set from the API, and
+// data.Tags to either the plan's own explicit value (left untouched - it's
+// already known to be exactly what's in config, and echoing it back is the
+// only way to avoid "provider produced inconsistent result" when
+// default_tags adds keys the config never declared) or, when the plan
+// didn't declare any tags of its own (planTags null/unknown, as is always
+// the case on Read, which has no plan to consult), a best-effort
+// reconstruction of "the tags not explained by default_tags".
+func (r *dashboardResource) populateTags(ctx context.Context, data *DashboardModel, planTags types.Map, apiTags map[string]string) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	tagsAllVal, tagsAllDiags := stringMapValue(ctx, apiTags)
+	diags.Append(tagsAllDiags...)
+	data.TagsAll = tagsAllVal
+
+	if !planTags.IsNull() && !planTags.IsUnknown() {
+		data.Tags = planTags
+		return diags
+	}
+
+	tagsVal, tagsDiags := stringMapValue(ctx, bronto.OwnTags(apiTags, r.client.DefaultTags))
 	diags.Append(tagsDiags...)
 	data.Tags = tagsVal
-
 	return diags
 }
 
@@ -407,4 +444,14 @@ func stringSetValue(ctx context.Context, values []string) (types.Set, diag.Diagn
 		values = []string{}
 	}
 	return types.SetValueFrom(ctx, types.StringType, values)
+}
+
+// stringMapValue converts a map[string]string into a types.Map, normalizing
+// a nil map to an empty (but non-null) map first, for the same reason
+// stringSetValue normalizes a nil slice.
+func stringMapValue(ctx context.Context, values map[string]string) (types.Map, diag.Diagnostics) {
+	if values == nil {
+		values = map[string]string{}
+	}
+	return types.MapValueFrom(ctx, types.StringType, values)
 }

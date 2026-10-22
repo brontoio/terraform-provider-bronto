@@ -35,8 +35,9 @@ func New(version string) func() provider.Provider {
 }
 
 type brontoProviderModel struct {
-	Endpoint types.String `tfsdk:"endpoint"`
-	ApiKey   types.String `tfsdk:"api_key"`
+	Endpoint    types.String `tfsdk:"endpoint"`
+	ApiKey      types.String `tfsdk:"api_key"`
+	DefaultTags types.Map    `tfsdk:"default_tags"`
 }
 
 type brontoProvider struct {
@@ -67,6 +68,14 @@ func (p *brontoProvider) Schema(ctx context.Context, req provider.SchemaRequest,
 				Sensitive:           true,
 				Description:         "The API key used to authenticate with the Bronto API. Can also be set via the BRONTO_API_KEY environment variable.",
 				MarkdownDescription: "The API key used to authenticate with the Bronto API. Can also be set via the `BRONTO_API_KEY` environment variable.",
+			},
+			"default_tags": schema.MapAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				Description: "Tags merged into every taggable resource (bronto_user, bronto_dashboard, bronto_widget), with each resource's own tags winning on key conflicts. " +
+					"Applied only when a resource is created or updated - changing default_tags doesn't retroactively resync tags on resources that aren't otherwise being changed.",
+				MarkdownDescription: "Tags merged into every taggable resource (`bronto_user`, `bronto_dashboard`, `bronto_widget`), with each resource's own `tags` winning on key conflicts. " +
+					"Applied only when a resource is created or updated - changing `default_tags` doesn't retroactively resync tags on resources that aren't otherwise being changed.",
 			},
 		},
 	}
@@ -157,6 +166,17 @@ func (p *brontoProvider) Configure(ctx context.Context, req provider.ConfigureRe
 				"Bronto Client Error: "+err.Error(),
 		)
 		return
+	}
+
+	// default_tags is Optional with no fallback source (no env var), so a
+	// null/unknown value just means "no defaults configured."
+	if !config.DefaultTags.IsNull() && !config.DefaultTags.IsUnknown() {
+		var defaultTags map[string]string
+		resp.Diagnostics.Append(config.DefaultTags.ElementsAs(ctx, &defaultTags, false)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		client.DefaultTags = defaultTags
 	}
 
 	// Make the Bronto client available during DataSource and Resource
