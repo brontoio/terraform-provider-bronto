@@ -107,6 +107,9 @@ func MetricDefinitionResourceSchema(ctx context.Context) schema.Schema {
 							Computed:            true,
 							Description:         "Log IDs to query. Exactly one of from or from_expr must be specified.",
 							MarkdownDescription: "Log IDs to query. Exactly one of `from` or `from_expr` must be specified.",
+							PlanModifiers: []planmodifier.List{
+								listplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"from_expr": schema.StringAttribute{
 							Optional:            true,
@@ -115,6 +118,9 @@ func MetricDefinitionResourceSchema(ctx context.Context) schema.Schema {
 							MarkdownDescription: "An expression identifying the logs or metric to query. Exactly one of `from` or `from_expr` must be specified.",
 							Validators: []validator.String{
 								stringvalidator.LengthAtMost(255),
+							},
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
 							},
 						},
 						"where": schema.StringAttribute{
@@ -130,6 +136,9 @@ func MetricDefinitionResourceSchema(ctx context.Context) schema.Schema {
 							MarkdownDescription: "Keys used to arrange the aggregated results into groups.",
 							Validators: []validator.List{
 								listvalidator.SizeBetween(0, 5),
+							},
+							PlanModifiers: []planmodifier.List{
+								listplanmodifier.UseStateForUnknown(),
 							},
 						},
 						"aggregation": schema.SingleNestedAttribute{
@@ -153,6 +162,9 @@ func MetricDefinitionResourceSchema(ctx context.Context) schema.Schema {
 									Validators: []validator.String{
 										stringvalidator.OneOf(reduceToValues...),
 									},
+									PlanModifiers: []planmodifier.String{
+										stringplanmodifier.UseStateForUnknown(),
+									},
 								},
 								"time_function_params": schema.ListAttribute{
 									ElementType:         types.StringType,
@@ -163,6 +175,9 @@ func MetricDefinitionResourceSchema(ctx context.Context) schema.Schema {
 									Validators: []validator.List{
 										listvalidator.SizeBetween(0, 1),
 									},
+									PlanModifiers: []planmodifier.List{
+										listplanmodifier.UseStateForUnknown(),
+									},
 								},
 							},
 						},
@@ -172,6 +187,9 @@ func MetricDefinitionResourceSchema(ctx context.Context) schema.Schema {
 							Computed:            true,
 							Description:         "Optional configuration describing the unit of the query's raw value, as a JSON-encoded string (e.g. jsonencode({...})). Used for UI display only.",
 							MarkdownDescription: "Optional configuration describing the unit of the query's raw value, as a JSON-encoded string (e.g. `jsonencode({...})`). Used for UI display only.",
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 					},
 				},
@@ -185,6 +203,7 @@ func MetricDefinitionResourceSchema(ctx context.Context) schema.Schema {
 					listvalidator.SizeAtMost(5),
 				},
 				PlanModifiers: []planmodifier.List{
+					listplanmodifier.UseStateForUnknown(),
 					listplanmodifier.RequiresReplace(),
 				},
 				NestedObject: schema.NestedAttributeObject{
@@ -213,6 +232,9 @@ func MetricDefinitionResourceSchema(ctx context.Context) schema.Schema {
 							Validators: []validator.String{
 								stringvalidator.OneOf(reduceToValues...),
 							},
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"unit_config": schema.StringAttribute{
 							CustomType:          jsontypes.NormalizedType{},
@@ -220,6 +242,9 @@ func MetricDefinitionResourceSchema(ctx context.Context) schema.Schema {
 							Computed:            true,
 							Description:         "Optional configuration describing the unit of the formula's value, as a JSON-encoded string (e.g. jsonencode({...})). Used for UI display only.",
 							MarkdownDescription: "Optional configuration describing the unit of the formula's value, as a JSON-encoded string (e.g. `jsonencode({...})`). Used for UI display only.",
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 					},
 				},
