@@ -42,10 +42,7 @@ type Monitor struct {
 }
 
 // CreateMonitorRequest is the body of POST /monitors. Only the metric_id
-// (reference an existing metric definition) form is supported - not the
-// alternative inline queries/formulas form - mirroring bronto_widget's
-// sources, which also only ever references metric definitions (and
-// monitors, SLOs) by id rather than embedding query definitions.
+// (reference an existing metric definition) form is supported.
 type CreateMonitorRequest struct {
 	Name                 string          `json:"name"`
 	Description          string          `json:"description,omitempty"`

@@ -1,38 +1,5 @@
 package resource_monitor
 
-// Hand-written schema and model for the bronto_monitor resource. Not run
-// through the tfplugingen pipeline: actions needs Set semantics (order
-// isn't meaningful for a list of notification targets, same reasoning as
-// login_methods on the user resource), and aux needs jsontypes.Normalized.
-//
-// Deliberately omits status, last_trigger_ts, and monitored_groups: these
-// are live telemetry that changes independently of any config (a monitor's
-// status flips the instant its metric crosses a threshold, regardless of
-// whether Terraform touched it), not configuration-like facts worth
-// tracking in state - the same reasoning that excluded last_heartbeat_at
-// from bronto_dataset.
-//
-// Only the metric_id (reference an existing bronto_metric_definition) form
-// of monitor creation is supported, not the alternative inline
-// queries/formulas form the API also accepts - mirroring bronto_widget's
-// sources, which likewise only ever references metrics/monitors/SLOs by
-// id rather than embedding query definitions of its own.
-//
-// The create/update API originally called this field metric_def_id, while
-// read called it metric_id; both are metric_id now (BRONTO-3441), and this
-// attribute and the wire-level CreateMonitorRequest/UpdateMonitorRequest
-// structs in internal/monitor.go follow that rename.
-//
-// Muting (muted_until) can only be changed after creation through a
-// dedicated POST /monitors/{id}/status call, not through the resource's
-// own PUT - see monitor_resource.go's Update.
-//
-// Unlike bronto_user/bronto_dashboard/bronto_widget, there's no tags
-// attribute here: the generic /tags API's Entity.type enum doesn't include
-// "monitor" (confirmed against staging - POST /tags with entity type
-// "monitor" is rejected), even though the Monitor read schema includes an
-// always-empty "tags" field. Monitors genuinely aren't taggable today.
-
 import (
 	"context"
 
@@ -177,13 +144,7 @@ func MonitorResourceSchema(ctx context.Context) schema.Schema {
 				Validators: []validator.String{
 					stringvalidator.OneOf(monitorStatuses...),
 				},
-				// Without this, leaving no_data_status unconfigured makes it
-				// unknown on every plan (no Default here, unlike
-				// notify_once/monitor_type/ai_report_enabled), and the
-				// encoded PUT then omits it - which the API treats as reset
-				// to OK rather than leave-unchanged. Confirmed live: an
-				// unrelated update silently reverted a monitor's
-				// no_data_status from ALERT back to OK before this fix.
+				// Without this, leaving no_data_status unconfigured makes it unknown on every plan.
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -202,9 +163,7 @@ func MonitorResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				Description:         "Remove groups with no data after this many milliseconds. Defaults to 0 (never).",
 				MarkdownDescription: "Remove groups with no data after this many milliseconds. Defaults to `0` (never).",
-				// Same reasoning as no_data_status: confirmed live that an
-				// unrelated update silently reverted group_retention back
-				// to 0 without this.
+				// Same reasoning as no_data_status.
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.UseStateForUnknown(),
 				},
@@ -233,13 +192,7 @@ func MonitorResourceSchema(ctx context.Context) schema.Schema {
 					"unmuted. Changed after creation via a dedicated mute/unmute call, not the monitor's own update endpoint.",
 				MarkdownDescription: "Epoch millis timestamp the monitor is muted until. `-1` mutes indefinitely. Omit (or `0`) for " +
 					"unmuted. Changed after creation via a dedicated mute/unmute call, not the monitor's own update endpoint.",
-				// Left unconfigured, this must carry forward whatever's in
-				// state rather than going unknown on every update: Update()
-				// only calls the mute/unmute endpoint when the plan value
-				// actually differs from state, and an unknown plan value
-				// (the default for an unconfigured Computed attribute with
-				// no prior-state carry-forward) would make every unrelated
-				// update silently unmute the monitor.
+				// Left unconfigured, this must carry forward whatever's in  state rather than going unknown on every update.
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.UseStateForUnknown(),
 				},

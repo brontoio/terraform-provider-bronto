@@ -14,8 +14,7 @@ resource "bronto_metric_definition" "error_rate" {
   ]
 }
 
-# A monitor always references an existing bronto_metric_definition by id -
-# it can't embed queries/formulas of its own.
+# A monitor always references an existing bronto_metric_definition by id - it can't embed queries/formulas of its own.
 resource "bronto_monitor" "error_rate" {
   name                = "High error rate"
   description         = "Error rate is above threshold over the last 20 minutes"
@@ -33,8 +32,7 @@ resource "bronto_monitor" "error_rate" {
   ]
 }
 
-# An anomaly detection monitor, comparing against a trailing baseline
-# instead of a fixed threshold.
+# An anomaly detection monitor, comparing against a trailing baseline instead of a fixed threshold.
 resource "bronto_monitor" "error_rate_anomaly" {
   name                = "Unusual error rate"
   metric_id           = bronto_metric_definition.error_rate.id
