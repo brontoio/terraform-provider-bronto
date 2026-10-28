@@ -100,9 +100,6 @@ resource "bronto_monitor" "error_rate_anomaly" {
 ### Read-Only
 
 - `id` (String) The unique identifier for the monitor
-- `last_trigger_ts` (Number) Epoch millis timestamp of the last time the monitor fired.
-- `monitored_groups` (Attributes List) The status of each group currently being monitored. (see [below for nested schema](#nestedatt--monitored_groups))
-- `status` (String) The current status of the monitor.
 
 <a id="nestedatt--actions"></a>
 ### Nested Schema for `actions`
@@ -115,16 +112,6 @@ Optional:
 
 - `email` (String) The email address to notify. Required when `type` is `EMAIL`.
 - `integration_id` (String) The id of the `bronto_slack_integration` or `bronto_webhook_integration` to notify. Required when `type` is `INTEGRATION`.
-
-
-<a id="nestedatt--monitored_groups"></a>
-### Nested Schema for `monitored_groups`
-
-Read-Only:
-
-- `group_id` (String) The identifier of the group.
-- `groups` (Map of String) The key/value pairs that make up this group.
-- `status` (String) The status of this group.
 
 ## Import
 

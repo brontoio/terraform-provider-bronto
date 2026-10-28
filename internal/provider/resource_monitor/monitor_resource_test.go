@@ -14,7 +14,6 @@ func TestPopulateModelMapsAllFields(t *testing.T) {
 	warningThreshold := 900.0
 	groupRetention := int64(600000)
 	mutedUntil := int64(-1)
-	lastTriggerTs := int64(1710948395538)
 
 	m := bronto.Monitor{
 		Id:                   "monitor-1",
@@ -25,20 +24,15 @@ func TestPopulateModelMapsAllFields(t *testing.T) {
 		WarningThreshold:     &warningThreshold,
 		Window:               "Last 20 minutes",
 		Actions:              []bronto.MonitorAction{{Type: "EMAIL", Email: "a@example.com"}},
-		Status:               "OK",
 		NoDataStatus:         "ALERT",
 		MutedUntil:           &mutedUntil,
 		NotifyOnce:           true,
 		GroupRetention:       &groupRetention,
-		LastTriggerTs:        &lastTriggerTs,
 		Aux:                  json.RawMessage(`{"query_mode":"visual"}`),
 		MonitorType:          "PATTERN",
 		AiReportEnabled:      true,
 		AiReportInstructions: "check deployments",
 		MetricId:             "metric-1",
-		MonitoredGroups: []bronto.MonitoredGroup{
-			{GroupId: "region:EU", Groups: map[string]string{"region": "EU"}, Status: "OK"},
-		},
 	}
 
 	var data MonitorModel
@@ -62,24 +56,11 @@ func TestPopulateModelMapsAllFields(t *testing.T) {
 	if data.MutedUntil.ValueInt64() != -1 {
 		t.Errorf("MutedUntil = %v", data.MutedUntil.ValueInt64())
 	}
-	if data.LastTriggerTs.ValueInt64() != lastTriggerTs {
-		t.Errorf("LastTriggerTs = %v", data.LastTriggerTs.ValueInt64())
-	}
-	if data.Status.ValueString() != "OK" {
-		t.Errorf("Status = %s", data.Status.ValueString())
-	}
 	if data.Aux.ValueString() != `{"query_mode":"visual"}` {
 		t.Errorf("Aux = %s", data.Aux.ValueString())
 	}
 	if len(data.Actions) != 1 || data.Actions[0].Type.ValueString() != "EMAIL" || data.Actions[0].Email.ValueString() != "a@example.com" {
 		t.Errorf("Actions = %+v", data.Actions)
-	}
-	var groups []MonitoredGroupModel
-	if diags := data.MonitoredGroups.ElementsAs(ctx, &groups, false); diags.HasError() {
-		t.Fatalf("MonitoredGroups.ElementsAs: %v", diags)
-	}
-	if len(groups) != 1 || groups[0].GroupId.ValueString() != "region:EU" {
-		t.Errorf("MonitoredGroups = %+v", groups)
 	}
 }
 
@@ -120,13 +101,6 @@ func TestPopulateModelAbsentOptionalFieldsAreNull(t *testing.T) {
 	}
 	if len(data.Actions) != 0 {
 		t.Errorf("Actions should be empty, got %+v", data.Actions)
-	}
-	var groups []MonitoredGroupModel
-	if diags := data.MonitoredGroups.ElementsAs(ctx, &groups, false); diags.HasError() {
-		t.Fatalf("MonitoredGroups.ElementsAs: %v", diags)
-	}
-	if len(groups) != 0 {
-		t.Errorf("MonitoredGroups should be empty, got %+v", groups)
 	}
 }
 

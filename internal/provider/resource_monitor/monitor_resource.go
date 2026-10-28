@@ -331,7 +331,6 @@ func populateModel(ctx context.Context, data *MonitorModel, m bronto.Monitor) di
 	data.NotifyOnce = types.BoolValue(m.NotifyOnce)
 	data.MonitorType = types.StringValue(m.MonitorType)
 	data.AiReportEnabled = types.BoolValue(m.AiReportEnabled)
-	data.Status = types.StringValue(m.Status)
 
 	if m.Description == "" {
 		data.Description = types.StringNull()
@@ -383,7 +382,6 @@ func populateModel(ctx context.Context, data *MonitorModel, m bronto.Monitor) di
 
 	data.WarningThreshold = float64PointerToValue(m.WarningThreshold)
 	data.GroupRetention = int64PointerToValue(m.GroupRetention)
-	data.LastTriggerTs = int64PointerToValue(m.LastTriggerTs)
 
 	// Unlike group_retention/last_trigger_ts, the API omits muted_until
 	// entirely when unmuted rather than returning 0 - normalize that to 0
@@ -418,32 +416,7 @@ func populateModel(ctx context.Context, data *MonitorModel, m bronto.Monitor) di
 	}
 	data.Actions = actions
 
-	groups := make([]MonitoredGroupModel, 0, len(m.MonitoredGroups))
-	for _, g := range m.MonitoredGroups {
-		groupsVal, groupDiags := stringMapValue(ctx, g.Groups)
-		diags.Append(groupDiags...)
-		groups = append(groups, MonitoredGroupModel{
-			GroupId: types.StringValue(g.GroupId),
-			Groups:  groupsVal,
-			Status:  types.StringValue(g.Status),
-		})
-	}
-	monitoredGroupsVal, monitoredGroupsDiags := types.ListValueFrom(ctx, monitoredGroupObjectType, groups)
-	diags.Append(monitoredGroupsDiags...)
-	data.MonitoredGroups = monitoredGroupsVal
-
 	return diags
-}
-
-// stringMapValue converts a map[string]string into a types.Map, normalizing
-// a nil map to an empty (but non-null) map first, so the API responding
-// with an absent field or an empty object for "no values" map to the same
-// state value.
-func stringMapValue(ctx context.Context, values map[string]string) (types.Map, diag.Diagnostics) {
-	if values == nil {
-		values = map[string]string{}
-	}
-	return types.MapValueFrom(ctx, types.StringType, values)
 }
 
 func float64PointerValue(v types.Float64) *float64 {

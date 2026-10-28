@@ -3,9 +3,14 @@ package resource_monitor
 // Hand-written schema and model for the bronto_monitor resource. Not run
 // through the tfplugingen pipeline: actions needs Set semantics (order
 // isn't meaningful for a list of notification targets, same reasoning as
-// login_methods on the user resource), aux needs jsontypes.Normalized, and
-// monitored_groups is a read-only nested list the generator doesn't
-// produce.
+// login_methods on the user resource), and aux needs jsontypes.Normalized.
+//
+// Deliberately omits status, last_trigger_ts, and monitored_groups: these
+// are live telemetry that changes independently of any config (a monitor's
+// status flips the instant its metric crosses a threshold, regardless of
+// whether Terraform touched it), not configuration-like facts worth
+// tracking in state - the same reasoning that excluded last_heartbeat_at
+// from bronto_dataset.
 //
 // Only the metric_id (reference an existing bronto_metric_definition) form
 // of monitor creation is supported, not the alternative inline
@@ -34,7 +39,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
@@ -303,41 +307,6 @@ func MonitorResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Instructions for the AI on what to include in the report, e.g. check for recent " +
 					"deployments, verify the health of the following dependencies: ...",
 			},
-			"status": schema.StringAttribute{
-				Computed:            true,
-				Description:         "The current status of the monitor.",
-				MarkdownDescription: "The current status of the monitor.",
-			},
-			"last_trigger_ts": schema.Int64Attribute{
-				Computed:            true,
-				Description:         "Epoch millis timestamp of the last time the monitor fired.",
-				MarkdownDescription: "Epoch millis timestamp of the last time the monitor fired.",
-			},
-			"monitored_groups": schema.ListNestedAttribute{
-				Computed:            true,
-				Description:         "The status of each group currently being monitored.",
-				MarkdownDescription: "The status of each group currently being monitored.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"group_id": schema.StringAttribute{
-							Computed:            true,
-							Description:         "The identifier of the group.",
-							MarkdownDescription: "The identifier of the group.",
-						},
-						"groups": schema.MapAttribute{
-							ElementType:         types.StringType,
-							Computed:            true,
-							Description:         "The key/value pairs that make up this group.",
-							MarkdownDescription: "The key/value pairs that make up this group.",
-						},
-						"status": schema.StringAttribute{
-							Computed:            true,
-							Description:         "The status of this group.",
-							MarkdownDescription: "The status of this group.",
-						},
-					},
-				},
-			},
 		},
 	}
 }
@@ -346,26 +315,6 @@ type ActionModel struct {
 	Type          types.String `tfsdk:"type"`
 	Email         types.String `tfsdk:"email"`
 	IntegrationId types.String `tfsdk:"integration_id"`
-}
-
-type MonitoredGroupModel struct {
-	GroupId types.String `tfsdk:"group_id"`
-	Groups  types.Map    `tfsdk:"groups"`
-	Status  types.String `tfsdk:"status"`
-}
-
-// monitoredGroupObjectType mirrors MonitoredGroupModel's attribute types.
-// "monitored_groups" is Computed-only, which means its value is entirely
-// unknown during planning (there's no prior state on create) - something
-// only a wrapped attr.Value type can represent, unlike a plain
-// []MonitoredGroupModel slice (see the same reasoning on bronto_widget's
-// "sources" attribute).
-var monitoredGroupObjectType = types.ObjectType{
-	AttrTypes: map[string]attr.Type{
-		"group_id": types.StringType,
-		"groups":   types.MapType{ElemType: types.StringType},
-		"status":   types.StringType,
-	},
 }
 
 type MonitorModel struct {
@@ -390,7 +339,4 @@ type MonitorModel struct {
 	AnomalyAlgorithm     types.String         `tfsdk:"anomaly_algorithm"`
 	AiReportEnabled      types.Bool           `tfsdk:"ai_report_enabled"`
 	AiReportInstructions types.String         `tfsdk:"ai_report_instructions"`
-	Status               types.String         `tfsdk:"status"`
-	LastTriggerTs        types.Int64          `tfsdk:"last_trigger_ts"`
-	MonitoredGroups      types.List           `tfsdk:"monitored_groups"`
 }
