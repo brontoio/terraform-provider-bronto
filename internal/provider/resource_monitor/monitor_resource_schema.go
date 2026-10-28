@@ -37,10 +37,8 @@ var actionTypes = []string{"EMAIL", "INTEGRATION"}
 
 func MonitorResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
-		Description: "Manages a Bronto monitor. Only monitors that reference an existing metric definition " +
-			"(via metric_id) are supported - not the API's alternative form with inline queries/formulas.",
-		MarkdownDescription: "Manages a Bronto monitor. Only monitors that reference an existing metric definition " +
-			"(via `metric_id`) are supported - not the API's alternative form with inline queries/formulas.",
+		Description:         "Manages a Bronto monitor.",
+		MarkdownDescription: "Manages a Bronto monitor.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
