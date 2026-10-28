@@ -244,7 +244,7 @@ func encodeCreateMonitorRequest(ctx context.Context, data MonitorModel) ([]byte,
 		AnomalyAlgorithm:     data.AnomalyAlgorithm.ValueString(),
 		AiReportEnabled:      boolPointerValue(data.AiReportEnabled),
 		AiReportInstructions: data.AiReportInstructions.ValueString(),
-		MetricDefId:          data.MetricDefId.ValueString(),
+		MetricId:             data.MetricId.ValueString(),
 	}
 	if !data.Aux.IsNull() && !data.Aux.IsUnknown() {
 		reqBody.Aux = json.RawMessage(data.Aux.ValueString())
@@ -288,7 +288,7 @@ func encodeUpdateMonitorRequest(ctx context.Context, data MonitorModel) ([]byte,
 		AnomalyAlgorithm:     data.AnomalyAlgorithm.ValueString(),
 		AiReportEnabled:      boolPointerValue(data.AiReportEnabled),
 		AiReportInstructions: data.AiReportInstructions.ValueString(),
-		MetricDefId:          data.MetricDefId.ValueString(),
+		MetricId:             data.MetricId.ValueString(),
 	}
 	if !data.Aux.IsNull() && !data.Aux.IsUnknown() {
 		reqBody.Aux = json.RawMessage(data.Aux.ValueString())
@@ -340,9 +340,9 @@ func populateModel(ctx context.Context, data *MonitorModel, m bronto.Monitor) di
 	}
 
 	if m.MetricId == "" {
-		data.MetricDefId = types.StringNull()
+		data.MetricId = types.StringNull()
 	} else {
-		data.MetricDefId = types.StringValue(m.MetricId)
+		data.MetricId = types.StringValue(m.MetricId)
 	}
 
 	if m.NoDataStatus == "" {

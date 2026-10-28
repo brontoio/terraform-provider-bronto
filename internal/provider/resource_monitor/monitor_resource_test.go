@@ -50,8 +50,8 @@ func TestPopulateModelMapsAllFields(t *testing.T) {
 	if data.Id.ValueString() != "monitor-1" {
 		t.Errorf("Id = %s", data.Id.ValueString())
 	}
-	if data.MetricDefId.ValueString() != "metric-1" {
-		t.Errorf("MetricDefId = %s", data.MetricDefId.ValueString())
+	if data.MetricId.ValueString() != "metric-1" {
+		t.Errorf("MetricId = %s", data.MetricId.ValueString())
 	}
 	if data.Threshold.ValueFloat64() != 1000 {
 		t.Errorf("Threshold = %v", data.Threshold.ValueFloat64())
@@ -112,8 +112,8 @@ func TestPopulateModelAbsentOptionalFieldsAreNull(t *testing.T) {
 	if data.MutedUntil.ValueInt64() != 0 {
 		t.Errorf("MutedUntil should be 0 when absent, got %v", data.MutedUntil.ValueInt64())
 	}
-	if !data.MetricDefId.IsNull() {
-		t.Errorf("MetricDefId should be null when absent")
+	if !data.MetricId.IsNull() {
+		t.Errorf("MetricId should be null when absent")
 	}
 	if data.Aux.IsNull() == false {
 		t.Errorf("Aux should be null when absent")
@@ -137,7 +137,7 @@ func TestEncodeCreateMonitorRequest(t *testing.T) {
 		ComparisonOperator: types.StringValue("ABOVE"),
 		Threshold:          types.Float64Value(1000),
 		Window:             types.StringValue("Last 20 minutes"),
-		MetricDefId:        types.StringValue("metric-1"),
+		MetricId:           types.StringValue("metric-1"),
 		MonitorType:        types.StringValue("PATTERN"),
 		NotifyOnce:         types.BoolValue(false),
 		AiReportEnabled:    types.BoolValue(false),
@@ -157,8 +157,8 @@ func TestEncodeCreateMonitorRequest(t *testing.T) {
 		t.Fatalf("unmarshal request body: %v", err)
 	}
 
-	if decoded.MetricDefId != "metric-1" {
-		t.Errorf("MetricDefId = %s", decoded.MetricDefId)
+	if decoded.MetricId != "metric-1" {
+		t.Errorf("MetricId = %s", decoded.MetricId)
 	}
 	if decoded.Threshold != 1000 {
 		t.Errorf("Threshold = %v", decoded.Threshold)
@@ -178,7 +178,7 @@ func TestEncodeUpdateMonitorRequestOmitsMuteUntil(t *testing.T) {
 		ComparisonOperator: types.StringValue("ABOVE"),
 		Threshold:          types.Float64Value(1),
 		Window:             types.StringValue("Last 5 minutes"),
-		MetricDefId:        types.StringValue("metric-1"),
+		MetricId:           types.StringValue("metric-1"),
 	}
 
 	body, diags := encodeUpdateMonitorRequest(ctx, data)

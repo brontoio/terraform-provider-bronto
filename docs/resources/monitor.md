@@ -3,12 +3,12 @@
 page_title: "bronto_monitor Resource - bronto"
 subcategory: ""
 description: |-
-  Manages a Bronto monitor. Only monitors that reference an existing metric definition (via metric_def_id) are supported - not the API's alternative form with inline queries/formulas.
+  Manages a Bronto monitor. Only monitors that reference an existing metric definition (via metric_id) are supported - not the API's alternative form with inline queries/formulas.
 ---
 
 # bronto_monitor (Resource)
 
-Manages a Bronto monitor. Only monitors that reference an existing metric definition (via `metric_def_id`) are supported - not the API's alternative form with inline queries/formulas.
+Manages a Bronto monitor. Only monitors that reference an existing metric definition (via `metric_id`) are supported - not the API's alternative form with inline queries/formulas.
 
 ## Example Usage
 
@@ -34,7 +34,7 @@ resource "bronto_metric_definition" "error_rate" {
 resource "bronto_monitor" "error_rate" {
   name                = "High error rate"
   description         = "Error rate is above threshold over the last 20 minutes"
-  metric_def_id       = bronto_metric_definition.error_rate.id
+  metric_id           = bronto_metric_definition.error_rate.id
   comparison_operator = "ABOVE"
   threshold           = 50
   warning_threshold   = 25
@@ -52,7 +52,7 @@ resource "bronto_monitor" "error_rate" {
 # instead of a fixed threshold.
 resource "bronto_monitor" "error_rate_anomaly" {
   name                = "Unusual error rate"
-  metric_def_id       = bronto_metric_definition.error_rate.id
+  metric_id           = bronto_metric_definition.error_rate.id
   monitor_type        = "ANOMALY_DETECTION"
   comparison_operator = "OUTSIDE"
   threshold           = 3
@@ -75,7 +75,7 @@ resource "bronto_monitor" "error_rate_anomaly" {
 
 - `actions` (Attributes Set) The notifications to send when the monitor fires or resolves. (see [below for nested schema](#nestedatt--actions))
 - `comparison_operator` (String) The comparison operator of the monitor. `OUTSIDE` is two-sided and only allowed for `ANOMALY_DETECTION` monitors.
-- `metric_def_id` (String) The id of the `bronto_metric_definition` this monitor tracks. The monitor references it rather than owning its lifecycle - deleting the monitor does not delete the metric definition.
+- `metric_id` (String) The id of the `bronto_metric_definition` this monitor tracks. The monitor references it rather than owning its lifecycle - deleting the monitor does not delete the metric definition.
 - `name` (String) The name of the monitor
 - `threshold` (Number) The threshold the monitor compares against. For `PATTERN`, `USAGE` and `CHANGE_DETECTION` monitors this is a metric value. For `ANOMALY_DETECTION` monitors it is a count of baseline spread units instead, and must be greater than 0.
 - `window` (String) The time window to evaluate the monitor, e.g. `Last 20 minutes`. Minimum five minutes, maximum one day.

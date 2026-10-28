@@ -19,7 +19,7 @@ resource "bronto_metric_definition" "error_rate" {
 resource "bronto_monitor" "error_rate" {
   name                = "High error rate"
   description         = "Error rate is above threshold over the last 20 minutes"
-  metric_def_id       = bronto_metric_definition.error_rate.id
+  metric_id           = bronto_metric_definition.error_rate.id
   comparison_operator = "ABOVE"
   threshold           = 50
   warning_threshold   = 25
@@ -37,7 +37,7 @@ resource "bronto_monitor" "error_rate" {
 # instead of a fixed threshold.
 resource "bronto_monitor" "error_rate_anomaly" {
   name                = "Unusual error rate"
-  metric_def_id       = bronto_metric_definition.error_rate.id
+  metric_id           = bronto_metric_definition.error_rate.id
   monitor_type        = "ANOMALY_DETECTION"
   comparison_operator = "OUTSIDE"
   threshold           = 3

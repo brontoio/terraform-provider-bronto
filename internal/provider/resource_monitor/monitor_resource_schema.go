@@ -7,11 +7,16 @@ package resource_monitor
 // monitored_groups is a read-only nested list the generator doesn't
 // produce.
 //
-// Only the metric_def_id (reference an existing bronto_metric_definition)
-// form of monitor creation is supported, not the alternative inline
+// Only the metric_id (reference an existing bronto_metric_definition) form
+// of monitor creation is supported, not the alternative inline
 // queries/formulas form the API also accepts - mirroring bronto_widget's
 // sources, which likewise only ever references metrics/monitors/SLOs by
 // id rather than embedding query definitions of its own.
+//
+// The create/update API originally called this field metric_def_id, while
+// read called it metric_id; both are metric_id now (BRONTO-3441), and this
+// attribute and the wire-level CreateMonitorRequest/UpdateMonitorRequest
+// structs in internal/monitor.go follow that rename.
 //
 // Muting (muted_until) can only be changed after creation through a
 // dedicated POST /monitors/{id}/status call, not through the resource's
@@ -62,9 +67,9 @@ var actionTypes = []string{"EMAIL", "INTEGRATION"}
 func MonitorResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Description: "Manages a Bronto monitor. Only monitors that reference an existing metric definition " +
-			"(via metric_def_id) are supported - not the API's alternative form with inline queries/formulas.",
+			"(via metric_id) are supported - not the API's alternative form with inline queries/formulas.",
 		MarkdownDescription: "Manages a Bronto monitor. Only monitors that reference an existing metric definition " +
-			"(via `metric_def_id`) are supported - not the API's alternative form with inline queries/formulas.",
+			"(via `metric_id`) are supported - not the API's alternative form with inline queries/formulas.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -90,7 +95,7 @@ func MonitorResourceSchema(ctx context.Context) schema.Schema {
 					stringvalidator.LengthBetween(1, 4000),
 				},
 			},
-			"metric_def_id": schema.StringAttribute{
+			"metric_id": schema.StringAttribute{
 				Required: true,
 				Description: "The id of the bronto_metric_definition this monitor tracks. The monitor references it " +
 					"rather than owning its lifecycle - deleting the monitor does not delete the metric definition.",
@@ -337,7 +342,7 @@ type MonitorModel struct {
 	Id                   types.String         `tfsdk:"id"`
 	Name                 types.String         `tfsdk:"name"`
 	Description          types.String         `tfsdk:"description"`
-	MetricDefId          types.String         `tfsdk:"metric_def_id"`
+	MetricId             types.String         `tfsdk:"metric_id"`
 	ComparisonOperator   types.String         `tfsdk:"comparison_operator"`
 	Threshold            types.Float64        `tfsdk:"threshold"`
 	WarningThreshold     types.Float64        `tfsdk:"warning_threshold"`

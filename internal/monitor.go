@@ -49,12 +49,11 @@ type Monitor struct {
 	MetricId             string           `json:"metric_id,omitempty"`
 }
 
-// CreateMonitorRequest is the body of POST /monitors. Only the
-// metric_def_id (reference an existing metric definition) form is
-// supported - not the alternative inline queries/formulas form - mirroring
-// bronto_widget's sources, which also only ever references metric
-// definitions (and monitors, SLOs) by id rather than embedding query
-// definitions.
+// CreateMonitorRequest is the body of POST /monitors. Only the metric_id
+// (reference an existing metric definition) form is supported - not the
+// alternative inline queries/formulas form - mirroring bronto_widget's
+// sources, which also only ever references metric definitions (and
+// monitors, SLOs) by id rather than embedding query definitions.
 type CreateMonitorRequest struct {
 	Name                 string          `json:"name"`
 	Description          string          `json:"description,omitempty"`
@@ -75,7 +74,7 @@ type CreateMonitorRequest struct {
 	AnomalyAlgorithm     string          `json:"anomaly_algorithm,omitempty"`
 	AiReportEnabled      *bool           `json:"ai_report_enabled,omitempty"`
 	AiReportInstructions string          `json:"ai_report_instructions,omitempty"`
-	MetricDefId          string          `json:"metric_def_id"`
+	MetricId             string          `json:"metric_id"`
 }
 
 // UpdateMonitorRequest is the body of PUT /monitors/{id}. Unlike create, it
@@ -100,7 +99,7 @@ type UpdateMonitorRequest struct {
 	AnomalyAlgorithm     string          `json:"anomaly_algorithm,omitempty"`
 	AiReportEnabled      *bool           `json:"ai_report_enabled,omitempty"`
 	AiReportInstructions string          `json:"ai_report_instructions,omitempty"`
-	MetricDefId          string          `json:"metric_def_id,omitempty"`
+	MetricId             string          `json:"metric_id,omitempty"`
 }
 
 // MuteMonitorRequest is the body of POST /monitors/{id}/status, the only
