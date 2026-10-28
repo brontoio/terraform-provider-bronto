@@ -173,6 +173,16 @@ func MonitorResourceSchema(ctx context.Context) schema.Schema {
 				Validators: []validator.String{
 					stringvalidator.OneOf(monitorStatuses...),
 				},
+				// Without this, leaving no_data_status unconfigured makes it
+				// unknown on every plan (no Default here, unlike
+				// notify_once/monitor_type/ai_report_enabled), and the
+				// encoded PUT then omits it - which the API treats as reset
+				// to OK rather than leave-unchanged. Confirmed live: an
+				// unrelated update silently reverted a monitor's
+				// no_data_status from ALERT back to OK before this fix.
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"notify_once": schema.BoolAttribute{
 				Optional: true,
@@ -188,6 +198,12 @@ func MonitorResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				Description:         "Remove groups with no data after this many milliseconds. Defaults to 0 (never).",
 				MarkdownDescription: "Remove groups with no data after this many milliseconds. Defaults to `0` (never).",
+				// Same reasoning as no_data_status: confirmed live that an
+				// unrelated update silently reverted group_retention back
+				// to 0 without this.
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+				},
 			},
 			"aux": schema.StringAttribute{
 				CustomType:          jsontypes.NormalizedType{},
@@ -195,6 +211,16 @@ func MonitorResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				Description:         "Additional monitor configuration, as a JSON-encoded string (e.g. jsonencode({...}))",
 				MarkdownDescription: "Additional monitor configuration, as a JSON-encoded string (e.g. `jsonencode({...})`)",
+				// encodeUpdateMonitorRequest already guards on
+				// IsNull/IsUnknown before setting Aux, so an unconfigured
+				// aux happens to be omitted (not reset) today even without
+				// this modifier - but relying on that is fragile, and it
+				// still causes needless "(known after apply)" plan noise
+				// on every unrelated update. Carry forward state like the
+				// other Optional+Computed, no-Default attributes here.
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"muted_until": schema.Int64Attribute{
 				Optional: true,
@@ -257,6 +283,10 @@ func MonitorResourceSchema(ctx context.Context) schema.Schema {
 					"How the baseline is estimated; `MEDIAN_MAD` is the only supported value.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("MEDIAN_MAD"),
+				},
+				// Same reasoning as no_data_status/group_retention.
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"ai_report_enabled": schema.BoolAttribute{
