@@ -9,6 +9,7 @@ import (
 	"terraform-provider-bronto/internal/provider/datasource_user"
 	"terraform-provider-bronto/internal/provider/resource_dashboard"
 	"terraform-provider-bronto/internal/provider/resource_metric_definition"
+	"terraform-provider-bronto/internal/provider/resource_monitor"
 	"terraform-provider-bronto/internal/provider/resource_slack_integration"
 	"terraform-provider-bronto/internal/provider/resource_user"
 	"terraform-provider-bronto/internal/provider/resource_webhook_integration"
@@ -206,5 +207,6 @@ func (p *brontoProvider) Resources(ctx context.Context) []func() resource.Resour
 		resource_metric_definition.NewMetricDefinitionResource,
 		resource_slack_integration.NewSlackIntegrationResource,
 		resource_webhook_integration.NewWebhookIntegrationResource,
+		resource_monitor.NewMonitorResource,
 	}
 }
