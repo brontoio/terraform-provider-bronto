@@ -14,7 +14,10 @@ provider "bronto" {
 
   # Optional: merged into every taggable resource's own tags (bronto_user,
   # bronto_dashboard, bronto_widget), with each resource's own tags winning
-  # on key conflicts.
+  # on key conflicts. managed_by = "terraform" here is just a convention to
+  # flag resources this provider manages - it applies equally whether you
+  # run this with Terraform or OpenTofu, since both execute this same
+  # provider binary unchanged.
   default_tags = {
     managed_by = "terraform"
   }
