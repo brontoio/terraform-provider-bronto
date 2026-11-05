@@ -258,6 +258,21 @@ func MonitorResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Instructions for the AI on what to include in the report, e.g. check for recent " +
 					"deployments, verify the health of the following dependencies: ...",
 			},
+			"tags": schema.MapAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				Computed:    true,
+				Description: "A map of key value pairs associated with the monitor, not including any inherited from the provider's default_tags - see tags_all for the full set. " +
+					"Applied via individual tag API calls, not the monitor's own create/update endpoints, so each changed key costs a separate request.",
+				MarkdownDescription: "A map of key value pairs associated with the monitor, not including any inherited from the provider's `default_tags` - see `tags_all` for the full set. " +
+					"Applied via individual tag API calls, not the monitor's own create/update endpoints, so each changed key costs a separate request.",
+			},
+			"tags_all": schema.MapAttribute{
+				ElementType:         types.StringType,
+				Computed:            true,
+				Description:         "The full set of tags on the monitor, including both tags and any merged in from the provider's default_tags.",
+				MarkdownDescription: "The full set of tags on the monitor, including both `tags` and any merged in from the provider's `default_tags`.",
+			},
 		},
 	}
 }
@@ -290,4 +305,6 @@ type MonitorModel struct {
 	AnomalyAlgorithm     types.String         `tfsdk:"anomaly_algorithm"`
 	AiReportEnabled      types.Bool           `tfsdk:"ai_report_enabled"`
 	AiReportInstructions types.String         `tfsdk:"ai_report_instructions"`
+	Tags                 types.Map            `tfsdk:"tags"`
+	TagsAll              types.Map            `tfsdk:"tags_all"`
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	bronto "terraform-provider-bronto/internal"
+	tfutil "terraform-provider-bronto/internal/provider/tfutil"
 )
 
 var (
@@ -117,12 +118,11 @@ func (r *dashboardResource) Create(ctx context.Context, req resource.CreateReque
 
 	// The create endpoint doesn't accept tags either; the only way to set
 	// them is one /tags API call per key.
-	specificTags, diags := extractStringMap(ctx, plan.Tags)
+	desiredTags, diags := tfutil.DesiredTags(ctx, plan.Tags, r.client.DefaultTags)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	desiredTags := bronto.MergeTags(r.client.DefaultTags, specificTags)
 
 	if len(desiredTags) > 0 {
 		if err := r.client.SyncTags(ctx, "dashboard", created.Id, nil, desiredTags); err != nil {
@@ -146,7 +146,7 @@ func (r *dashboardResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	resp.Diagnostics.Append(populateModel(ctx, &plan, created)...)
-	resp.Diagnostics.Append(r.populateTags(ctx, &plan, plan.Tags, created.Tags)...)
+	resp.Diagnostics.Append(tfutil.PopulateTags(ctx, &plan.Tags, &plan.TagsAll, plan.Tags, created.Tags, r.client.DefaultTags)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -172,7 +172,7 @@ func (r *dashboardResource) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 
 	resp.Diagnostics.Append(populateModel(ctx, &data, d)...)
-	resp.Diagnostics.Append(r.populateTags(ctx, &data, types.MapNull(types.StringType), d.Tags)...)
+	resp.Diagnostics.Append(tfutil.PopulateTags(ctx, &data.Tags, &data.TagsAll, types.MapNull(types.StringType), d.Tags, r.client.DefaultTags)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -277,18 +277,17 @@ func (r *dashboardResource) Update(ctx context.Context, req resource.UpdateReque
 	//
 	// currentTags MUST come from state.TagsAll (the full set last read from
 	// the API), not state.Tags (now only "own" tags, excluding anything
-	// matched to a default - see populateTags). Diffing against state.Tags
+	// matched to a default - see tfutil.PopulateTags). Diffing against state.Tags
 	// would make every default-contributed key look new on every update,
 	// since it was never in state.Tags to begin with, and SyncTags would
 	// try to re-create a tag that already exists (409 Conflict).
-	currentTags, diags := extractStringMap(ctx, state.TagsAll)
+	currentTags, diags := tfutil.ExtractStringMap(ctx, state.TagsAll)
 	resp.Diagnostics.Append(diags...)
-	specificTags, diags2 := extractStringMap(ctx, plan.Tags)
+	desiredTags, diags2 := tfutil.DesiredTags(ctx, plan.Tags, r.client.DefaultTags)
 	resp.Diagnostics.Append(diags2...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	desiredTags := bronto.MergeTags(r.client.DefaultTags, specificTags)
 
 	if err := r.client.SyncTags(ctx, "dashboard", dashboardId, currentTags, desiredTags); err != nil {
 		resp.Diagnostics.AddError(
@@ -308,7 +307,7 @@ func (r *dashboardResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	resp.Diagnostics.Append(populateModel(ctx, &plan, updated)...)
-	resp.Diagnostics.Append(r.populateTags(ctx, &plan, plan.Tags, updated.Tags)...)
+	resp.Diagnostics.Append(tfutil.PopulateTags(ctx, &plan.Tags, &plan.TagsAll, plan.Tags, updated.Tags, r.client.DefaultTags)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -382,44 +381,6 @@ func populateModel(ctx context.Context, data *DashboardModel, d bronto.Dashboard
 	return diags
 }
 
-// populateTags sets data.TagsAll to the full tag set from the API, and
-// data.Tags to either the plan's own explicit value (left untouched - it's
-// already known to be exactly what's in config, and echoing it back is the
-// only way to avoid "provider produced inconsistent result" when
-// default_tags adds keys the config never declared) or, when the plan
-// didn't declare any tags of its own (planTags null/unknown, as is always
-// the case on Read, which has no plan to consult), a best-effort
-// reconstruction of "the tags not explained by default_tags".
-func (r *dashboardResource) populateTags(ctx context.Context, data *DashboardModel, planTags types.Map, apiTags map[string]string) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	tagsAllVal, tagsAllDiags := stringMapValue(ctx, apiTags)
-	diags.Append(tagsAllDiags...)
-	data.TagsAll = tagsAllVal
-
-	if !planTags.IsNull() && !planTags.IsUnknown() {
-		data.Tags = planTags
-		return diags
-	}
-
-	tagsVal, tagsDiags := stringMapValue(ctx, bronto.OwnTags(apiTags, r.client.DefaultTags))
-	diags.Append(tagsDiags...)
-	data.Tags = tagsVal
-	return diags
-}
-
-func extractStringMap(ctx context.Context, m types.Map) (map[string]string, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	if m.IsNull() || m.IsUnknown() {
-		return nil, diags
-	}
-
-	var values map[string]string
-	diags.Append(m.ElementsAs(ctx, &values, false)...)
-	return values, diags
-}
-
 func extractStringSet(ctx context.Context, set types.Set) ([]string, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
@@ -444,14 +405,4 @@ func stringSetValue(ctx context.Context, values []string) (types.Set, diag.Diagn
 		values = []string{}
 	}
 	return types.SetValueFrom(ctx, types.StringType, values)
-}
-
-// stringMapValue converts a map[string]string into a types.Map, normalizing
-// a nil map to an empty (but non-null) map first, for the same reason
-// stringSetValue normalizes a nil slice.
-func stringMapValue(ctx context.Context, values map[string]string) (types.Map, diag.Diagnostics) {
-	if values == nil {
-		values = map[string]string{}
-	}
-	return types.MapValueFrom(ctx, types.StringType, values)
 }

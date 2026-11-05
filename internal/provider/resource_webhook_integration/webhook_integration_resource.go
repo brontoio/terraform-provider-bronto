@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	bronto "terraform-provider-bronto/internal"
+	tfutil "terraform-provider-bronto/internal/provider/tfutil"
 )
 
 var (
@@ -83,7 +84,35 @@ func (r *webhookIntegrationResource) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
+	// The create endpoint doesn't accept tags; the only way to set them is
+	// one /tags API call per key.
+	desiredTags, diags2 := tfutil.DesiredTags(ctx, plan.Tags, r.client.DefaultTags)
+	resp.Diagnostics.Append(diags2...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if len(desiredTags) > 0 {
+		if err := r.client.SyncTags(ctx, "integration", created.Id, nil, desiredTags); err != nil {
+			resp.Diagnostics.AddError(
+				"Unable to Create Resource",
+				"An unexpected error occurred while applying tags to the new webhook integration. Error: "+err.Error(),
+			)
+			return
+		}
+
+		created, err = r.getWebhookIntegration(ctx, created.Id)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Unable to Create Resource",
+				"An unexpected error occurred while reading back the webhook integration after applying tags. Error: "+err.Error(),
+			)
+			return
+		}
+	}
+
 	resp.Diagnostics.Append(populateModel(ctx, &plan, created)...)
+	resp.Diagnostics.Append(tfutil.PopulateTags(ctx, &plan.Tags, &plan.TagsAll, plan.Tags, created.Tags, r.client.DefaultTags)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -118,6 +147,7 @@ func (r *webhookIntegrationResource) Read(ctx context.Context, req resource.Read
 	}
 
 	resp.Diagnostics.Append(populateModel(ctx, &data, found)...)
+	resp.Diagnostics.Append(tfutil.PopulateTags(ctx, &data.Tags, &data.TagsAll, types.MapNull(types.StringType), found.Tags, r.client.DefaultTags)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -160,7 +190,40 @@ func (r *webhookIntegrationResource) Update(ctx context.Context, req resource.Up
 		return
 	}
 
+	// Always reconcile tags, even if plan.Tags == state.Tags: SyncTags is a
+	// no-op (zero API calls) when nothing's actually changed, but this way
+	// a default_tags change on the provider also gets picked up whenever
+	// this resource is updated for any other reason. currentTags MUST come
+	// from state.TagsAll, not state.Tags - see tfutil.PopulateTags.
+	currentTags, diags2 := tfutil.ExtractStringMap(ctx, state.TagsAll)
+	resp.Diagnostics.Append(diags2...)
+	desiredTags, diags3 := tfutil.DesiredTags(ctx, plan.Tags, r.client.DefaultTags)
+	resp.Diagnostics.Append(diags3...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if err := r.client.SyncTags(ctx, "integration", updated.Id, currentTags, desiredTags); err != nil {
+		resp.Diagnostics.AddError(
+			"Unable to Update Resource",
+			"An unexpected error occurred while syncing webhook integration tags. Error: "+err.Error(),
+		)
+		return
+	}
+
+	// The PUT response predates the tag sync above, so read back the tags
+	// actually applied.
+	updated, err = r.getWebhookIntegration(ctx, updated.Id)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Unable to Update Resource",
+			"An unexpected error occurred while reading back the webhook integration after syncing tags. Error: "+err.Error(),
+		)
+		return
+	}
+
 	resp.Diagnostics.Append(populateModel(ctx, &plan, updated)...)
+	resp.Diagnostics.Append(tfutil.PopulateTags(ctx, &plan.Tags, &plan.TagsAll, plan.Tags, updated.Tags, r.client.DefaultTags)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -188,7 +251,7 @@ func (r *webhookIntegrationResource) ImportState(ctx context.Context, req resour
 func encodeWebhookIntegrationRequest(ctx context.Context, data WebhookIntegrationModel) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	customHeaders, headerDiags := extractStringMap(ctx, data.CustomHeaders)
+	customHeaders, headerDiags := tfutil.ExtractStringMap(ctx, data.CustomHeaders)
 	diags.Append(headerDiags...)
 	if diags.HasError() {
 		return nil, diags
@@ -231,35 +294,17 @@ func populateModel(ctx context.Context, data *WebhookIntegrationModel, w bronto.
 		data.Payload = types.StringValue(w.Payload)
 	}
 
-	headersVal, headerDiags := stringMapValue(ctx, w.CustomHeaders)
+	headersVal, headerDiags := tfutil.StringMapValue(ctx, w.CustomHeaders)
 	diags.Append(headerDiags...)
 	data.CustomHeaders = headersVal
 
 	return diags
 }
 
-func extractStringMap(ctx context.Context, m types.Map) (map[string]string, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	if m.IsNull() || m.IsUnknown() {
-		return nil, diags
+func (r *webhookIntegrationResource) getWebhookIntegration(ctx context.Context, id string) (bronto.WebhookIntegration, error) {
+	httpResp, err := r.client.ReadRequest(ctx, "/integrations/webhooks/"+id)
+	if err != nil {
+		return bronto.WebhookIntegration{}, err
 	}
-
-	var values map[string]string
-	diags.Append(m.ElementsAs(ctx, &values, false)...)
-	return values, diags
-}
-
-// stringMapValue converts a map[string]string into a types.Map, normalizing
-// a nil map to an empty (but non-null) map first. types.MapValueFrom on its
-// own maps a nil map to a null map, which would make this Optional+Computed
-// attribute flip between null and an empty map depending on whether the API
-// responds with an absent field or an empty object for the same "no
-// values" state - the same kind of inconsistency that broke login_methods
-// on the user resource.
-func stringMapValue(ctx context.Context, values map[string]string) (types.Map, diag.Diagnostics) {
-	if values == nil {
-		values = map[string]string{}
-	}
-	return types.MapValueFrom(ctx, types.StringType, values)
+	return bronto.DecodeWebhookIntegration(httpResp)
 }

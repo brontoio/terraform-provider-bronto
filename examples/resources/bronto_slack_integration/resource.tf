@@ -16,4 +16,8 @@ resource "bronto_slack_integration" "api_alerts" {
       include_graph_image = false
     },
   ]
+
+  tags = {
+    team = "observability"
+  }
 }

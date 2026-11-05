@@ -16,10 +16,11 @@ type SlackChannel struct {
 // SlackIntegration is the wire representation of the Slack Integrations
 // API's SlackIntegrationResource schema.
 type SlackIntegration struct {
-	Id          string         `json:"id"`
-	Name        string         `json:"name"`
-	Channels    []SlackChannel `json:"channels"`
-	WorkspaceId string         `json:"workspace_id"`
+	Id          string            `json:"id"`
+	Name        string            `json:"name"`
+	Channels    []SlackChannel    `json:"channels"`
+	WorkspaceId string            `json:"workspace_id"`
+	Tags        map[string]string `json:"tags,omitempty"`
 }
 
 // SlackIntegrationRequest is the body of both POST /integrations/slack

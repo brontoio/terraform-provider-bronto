@@ -13,6 +13,7 @@ type WebhookIntegration struct {
 	Url           string            `json:"url"`
 	CustomHeaders map[string]string `json:"custom_headers"`
 	Payload       string            `json:"payload"`
+	Tags          map[string]string `json:"tags,omitempty"`
 }
 
 // WebhookIntegrationRequest is the body of both POST /integrations/webhooks

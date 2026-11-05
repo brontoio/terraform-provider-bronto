@@ -18,27 +18,28 @@ type MonitorAction struct {
 // surface them (see monitor_resource_schema.go), so there's nothing that
 // reads them here.
 type Monitor struct {
-	Id                   string          `json:"id"`
-	Name                 string          `json:"name"`
-	Description          string          `json:"description"`
-	ComparisonOperator   string          `json:"comparison_operator"`
-	Threshold            float64         `json:"threshold"`
-	WarningThreshold     *float64        `json:"warning_threshold,omitempty"`
-	Window               string          `json:"window"`
-	Actions              []MonitorAction `json:"actions"`
-	NoDataStatus         string          `json:"no_data_status,omitempty"`
-	MutedUntil           *int64          `json:"muted_until,omitempty"`
-	NotifyOnce           bool            `json:"notify_once"`
-	GroupRetention       *int64          `json:"group_retention,omitempty"`
-	Aux                  json.RawMessage `json:"aux,omitempty"`
-	MonitorType          string          `json:"monitor_type"`
-	CompareTo            string          `json:"compare_to,omitempty"`
-	ChangeType           string          `json:"change_type,omitempty"`
-	EvaluationWindow     string          `json:"evaluation_window,omitempty"`
-	AnomalyAlgorithm     string          `json:"anomaly_algorithm,omitempty"`
-	AiReportEnabled      bool            `json:"ai_report_enabled"`
-	AiReportInstructions string          `json:"ai_report_instructions,omitempty"`
-	MetricId             string          `json:"metric_id,omitempty"`
+	Id                   string            `json:"id"`
+	Name                 string            `json:"name"`
+	Description          string            `json:"description"`
+	ComparisonOperator   string            `json:"comparison_operator"`
+	Threshold            float64           `json:"threshold"`
+	WarningThreshold     *float64          `json:"warning_threshold,omitempty"`
+	Window               string            `json:"window"`
+	Actions              []MonitorAction   `json:"actions"`
+	NoDataStatus         string            `json:"no_data_status,omitempty"`
+	MutedUntil           *int64            `json:"muted_until,omitempty"`
+	NotifyOnce           bool              `json:"notify_once"`
+	GroupRetention       *int64            `json:"group_retention,omitempty"`
+	Aux                  json.RawMessage   `json:"aux,omitempty"`
+	MonitorType          string            `json:"monitor_type"`
+	CompareTo            string            `json:"compare_to,omitempty"`
+	ChangeType           string            `json:"change_type,omitempty"`
+	EvaluationWindow     string            `json:"evaluation_window,omitempty"`
+	AnomalyAlgorithm     string            `json:"anomaly_algorithm,omitempty"`
+	AiReportEnabled      bool              `json:"ai_report_enabled"`
+	AiReportInstructions string            `json:"ai_report_instructions,omitempty"`
+	MetricId             string            `json:"metric_id,omitempty"`
+	Tags                 map[string]string `json:"tags,omitempty"`
 }
 
 // CreateMonitorRequest is the body of POST /monitors. Only the metric_id

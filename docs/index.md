@@ -68,4 +68,4 @@ resource "bronto_user" "example" {
 
 ### Optional
 
-- `default_tags` (Map of String) Tags merged into every taggable resource (`bronto_user`, `bronto_dashboard`, `bronto_widget`), with each resource's own `tags` winning on key conflicts. Applied only when a resource is created or updated - changing `default_tags` doesn't retroactively resync tags on resources that aren't otherwise being changed.
+- `default_tags` (Map of String) Tags merged into every taggable resource (`bronto_user`, `bronto_dashboard`, `bronto_widget`, `bronto_monitor`, `bronto_webhook_integration`, `bronto_slack_integration`), with each resource's own `tags` winning on key conflicts. Applied only when a resource is created or updated - changing `default_tags` doesn't retroactively resync tags on resources that aren't otherwise being changed.

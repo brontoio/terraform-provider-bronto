@@ -73,9 +73,9 @@ func (p *brontoProvider) Schema(ctx context.Context, req provider.SchemaRequest,
 			"default_tags": schema.MapAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
-				Description: "Tags merged into every taggable resource (bronto_user, bronto_dashboard, bronto_widget), with each resource's own tags winning on key conflicts. " +
+				Description: "Tags merged into every taggable resource (bronto_user, bronto_dashboard, bronto_widget, bronto_monitor, bronto_webhook_integration, bronto_slack_integration), with each resource's own tags winning on key conflicts. " +
 					"Applied only when a resource is created or updated - changing default_tags doesn't retroactively resync tags on resources that aren't otherwise being changed.",
-				MarkdownDescription: "Tags merged into every taggable resource (`bronto_user`, `bronto_dashboard`, `bronto_widget`), with each resource's own `tags` winning on key conflicts. " +
+				MarkdownDescription: "Tags merged into every taggable resource (`bronto_user`, `bronto_dashboard`, `bronto_widget`, `bronto_monitor`, `bronto_webhook_integration`, `bronto_slack_integration`), with each resource's own `tags` winning on key conflicts. " +
 					"Applied only when a resource is created or updated - changing `default_tags` doesn't retroactively resync tags on resources that aren't otherwise being changed.",
 			},
 		},

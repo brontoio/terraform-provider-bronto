@@ -128,12 +128,12 @@ func TestEncodeWebhookIntegrationRequestOmitsPayloadWhenNull(t *testing.T) {
 	}
 }
 
-func TestExtractStringMapNull(t *testing.T) {
-	values, diags := extractStringMap(context.Background(), types.MapNull(types.StringType))
-	if diags.HasError() {
-		t.Fatalf("extractStringMap: %v", diags)
+func TestDecodeIncludesTags(t *testing.T) {
+	decoded, err := bronto.DecodeWebhookIntegration(`{"id":"w1","name":"n","url":"https://example.com/hook","tags":{"env":"prod"}}`)
+	if err != nil {
+		t.Fatalf("DecodeWebhookIntegration: %v", err)
 	}
-	if values != nil {
-		t.Errorf("expected nil for a null map, got %v", values)
+	if decoded.Tags["env"] != "prod" {
+		t.Errorf("Tags = %v, want env=prod", decoded.Tags)
 	}
 }
