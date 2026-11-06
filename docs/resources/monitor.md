@@ -45,6 +45,10 @@ resource "bronto_monitor" "error_rate" {
       email = "oncall@example.com"
     }
   ]
+
+  tags = {
+    team = "observability"
+  }
 }
 
 # An anomaly detection monitor, comparing against a trailing baseline instead of a fixed threshold.
@@ -93,11 +97,13 @@ resource "bronto_monitor" "error_rate_anomaly" {
 - `muted_until` (Number) Epoch millis timestamp the monitor is muted until. `-1` mutes indefinitely. Omit (or `0`) for unmuted. Changed after creation via a dedicated mute/unmute call, not the monitor's own update endpoint.
 - `no_data_status` (String) The status to use for a group with no data (no events matched in the time window). Defaults to `OK`.
 - `notify_once` (Boolean) Notify only the groups changing the global monitor status, i.e. notifications are sent only for the first group entering `ALERT` status or for the last group resolving. Defaults to `false`.
+- `tags` (Map of String) A map of key value pairs associated with the monitor, not including any inherited from the provider's `default_tags` - see `tags_all` for the full set. Applied via individual tag API calls, not the monitor's own create/update endpoints, so each changed key costs a separate request.
 - `warning_threshold` (Number) The warning threshold value, in the same units as `threshold`. For `ANOMALY_DETECTION` monitors it must be greater than 0 and less than `threshold`.
 
 ### Read-Only
 
 - `id` (String) The unique identifier for the monitor
+- `tags_all` (Map of String) The full set of tags on the monitor, including both `tags` and any merged in from the provider's `default_tags`.
 
 <a id="nestedatt--actions"></a>
 ### Nested Schema for `actions`

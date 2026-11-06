@@ -168,3 +168,13 @@ func TestEncodeUpdateMonitorRequestOmitsMuteUntil(t *testing.T) {
 		t.Errorf("mute_until must not appear in the update request body, got %v", raw)
 	}
 }
+
+func TestDecodeIncludesTags(t *testing.T) {
+	decoded, err := bronto.DecodeMonitor(`{"id":"m1","name":"n","tags":{"env":"prod"}}`)
+	if err != nil {
+		t.Fatalf("DecodeMonitor: %v", err)
+	}
+	if decoded.Tags["env"] != "prod" {
+		t.Errorf("Tags = %v, want env=prod", decoded.Tags)
+	}
+}

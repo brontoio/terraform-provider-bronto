@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 
+	bronto "terraform-provider-bronto/internal"
+	tfutil "terraform-provider-bronto/internal/provider/tfutil"
+
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	bronto "terraform-provider-bronto/internal"
 )
 
 var (
@@ -83,7 +85,35 @@ func (r *monitorResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
+	// The create endpoint doesn't accept tags; the only way to set them is
+	// one /tags API call per key.
+	desiredTags, diags2 := tfutil.DesiredTags(ctx, plan.Tags, r.client.DefaultTags)
+	resp.Diagnostics.Append(diags2...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if len(desiredTags) > 0 {
+		if err := r.client.SyncTags(ctx, "monitor", created.Id, nil, desiredTags); err != nil {
+			resp.Diagnostics.AddError(
+				"Unable to Create Resource",
+				"An unexpected error occurred while applying tags to the new monitor. Error: "+err.Error(),
+			)
+			return
+		}
+
+		created, err = r.getMonitor(ctx, created.Id)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Unable to Create Resource",
+				"An unexpected error occurred while reading back the monitor after applying tags. Error: "+err.Error(),
+			)
+			return
+		}
+	}
+
 	resp.Diagnostics.Append(populateModel(ctx, &plan, created)...)
+	resp.Diagnostics.Append(tfutil.PopulateTags(ctx, &plan.Tags, &plan.TagsAll, plan.Tags, created.Tags, r.client.DefaultTags)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -108,6 +138,7 @@ func (r *monitorResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	resp.Diagnostics.Append(populateModel(ctx, &data, m)...)
+	resp.Diagnostics.Append(tfutil.PopulateTags(ctx, &data.Tags, &data.TagsAll, types.MapNull(types.StringType), m.Tags, r.client.DefaultTags)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -174,6 +205,27 @@ func (r *monitorResource) Update(ctx context.Context, req resource.UpdateRequest
 		}
 	}
 
+	// Always reconcile tags, even if plan.Tags == state.Tags: SyncTags is a
+	// no-op (zero API calls) when nothing's actually changed, but this way
+	// a default_tags change on the provider also gets picked up whenever
+	// this resource is updated for any other reason. currentTags MUST come
+	// from state.TagsAll, not state.Tags - see tfutil.PopulateTags.
+	currentTags, diags2 := tfutil.ExtractStringMap(ctx, state.TagsAll)
+	resp.Diagnostics.Append(diags2...)
+	desiredTags, diags3 := tfutil.DesiredTags(ctx, plan.Tags, r.client.DefaultTags)
+	resp.Diagnostics.Append(diags3...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if err := r.client.SyncTags(ctx, "monitor", monitorId, currentTags, desiredTags); err != nil {
+		resp.Diagnostics.AddError(
+			"Unable to Update Resource",
+			"An unexpected error occurred while syncing monitor tags. Error: "+err.Error(),
+		)
+		return
+	}
+
 	updated, err := r.getMonitor(ctx, monitorId)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -184,6 +236,7 @@ func (r *monitorResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	resp.Diagnostics.Append(populateModel(ctx, &plan, updated)...)
+	resp.Diagnostics.Append(tfutil.PopulateTags(ctx, &plan.Tags, &plan.TagsAll, plan.Tags, updated.Tags, r.client.DefaultTags)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

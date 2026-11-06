@@ -31,6 +31,10 @@ resource "bronto_slack_integration" "api_alerts" {
       include_graph_image = false
     },
   ]
+
+  tags = {
+    team = "observability"
+  }
 }
 ```
 
@@ -43,9 +47,14 @@ resource "bronto_slack_integration" "api_alerts" {
 - `name` (String) The name of the Slack integration
 - `workspace_id` (String) The ID of the Slack workspace to use. The workspace must already be connected through the Bronto UI's OAuth flow first - it can't be created by this provider. Use the `bronto_slack_workspaces` data source to look up the ID of an already-connected workspace.
 
+### Optional
+
+- `tags` (Map of String) A map of key value pairs associated with the Slack integration, not including any inherited from the provider's `default_tags` - see `tags_all` for the full set. Applied via individual tag API calls, not the Slack integration's own create/update endpoints, so each changed key costs a separate request.
+
 ### Read-Only
 
 - `id` (String) The unique identifier for the Slack integration
+- `tags_all` (Map of String) The full set of tags on the Slack integration, including both `tags` and any merged in from the provider's `default_tags`.
 
 <a id="nestedatt--channels"></a>
 ### Nested Schema for `channels`

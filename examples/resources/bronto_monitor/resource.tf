@@ -30,6 +30,10 @@ resource "bronto_monitor" "error_rate" {
       email = "oncall@example.com"
     }
   ]
+
+  tags = {
+    team = "observability"
+  }
 }
 
 # An anomaly detection monitor, comparing against a trailing baseline instead of a fixed threshold.

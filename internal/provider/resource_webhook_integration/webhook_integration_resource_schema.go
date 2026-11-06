@@ -69,6 +69,21 @@ func WebhookIntegrationResourceSchema(ctx context.Context) schema.Schema {
 					stringvalidator.LengthAtMost(2048),
 				},
 			},
+			"tags": schema.MapAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				Computed:    true,
+				Description: "A map of key value pairs associated with the webhook integration, not including any inherited from the provider's default_tags - see tags_all for the full set. " +
+					"Applied via individual tag API calls, not the webhook integration's own create/update endpoints, so each changed key costs a separate request.",
+				MarkdownDescription: "A map of key value pairs associated with the webhook integration, not including any inherited from the provider's `default_tags` - see `tags_all` for the full set. " +
+					"Applied via individual tag API calls, not the webhook integration's own create/update endpoints, so each changed key costs a separate request.",
+			},
+			"tags_all": schema.MapAttribute{
+				ElementType:         types.StringType,
+				Computed:            true,
+				Description:         "The full set of tags on the webhook integration, including both tags and any merged in from the provider's default_tags.",
+				MarkdownDescription: "The full set of tags on the webhook integration, including both `tags` and any merged in from the provider's `default_tags`.",
+			},
 		},
 	}
 }
@@ -79,4 +94,6 @@ type WebhookIntegrationModel struct {
 	Url           types.String `tfsdk:"url"`
 	CustomHeaders types.Map    `tfsdk:"custom_headers"`
 	Payload       types.String `tfsdk:"payload"`
+	Tags          types.Map    `tfsdk:"tags"`
+	TagsAll       types.Map    `tfsdk:"tags_all"`
 }

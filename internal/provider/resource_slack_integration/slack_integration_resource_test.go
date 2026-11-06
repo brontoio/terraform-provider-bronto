@@ -74,3 +74,13 @@ func TestEncodeSlackIntegrationRequest(t *testing.T) {
 		t.Errorf("Channels = %+v", decoded.Channels)
 	}
 }
+
+func TestDecodeIncludesTags(t *testing.T) {
+	decoded, err := bronto.DecodeSlackIntegration(`{"id":"s1","name":"n","workspace_id":"ws","channels":[],"tags":{"env":"prod"}}`)
+	if err != nil {
+		t.Fatalf("DecodeSlackIntegration: %v", err)
+	}
+	if decoded.Tags["env"] != "prod" {
+		t.Errorf("Tags = %v, want env=prod", decoded.Tags)
+	}
+}

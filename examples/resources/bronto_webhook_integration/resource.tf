@@ -15,4 +15,8 @@ resource "bronto_webhook_integration" "on_call" {
     message = "$description"
     details = { id = "$alert_id" }
   })
+
+  tags = {
+    team = "observability"
+  }
 }

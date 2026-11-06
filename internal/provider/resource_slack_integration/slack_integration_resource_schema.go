@@ -66,6 +66,21 @@ func SlackIntegrationResourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 			},
+			"tags": schema.MapAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				Computed:    true,
+				Description: "A map of key value pairs associated with the Slack integration, not including any inherited from the provider's default_tags - see tags_all for the full set. " +
+					"Applied via individual tag API calls, not the Slack integration's own create/update endpoints, so each changed key costs a separate request.",
+				MarkdownDescription: "A map of key value pairs associated with the Slack integration, not including any inherited from the provider's `default_tags` - see `tags_all` for the full set. " +
+					"Applied via individual tag API calls, not the Slack integration's own create/update endpoints, so each changed key costs a separate request.",
+			},
+			"tags_all": schema.MapAttribute{
+				ElementType:         types.StringType,
+				Computed:            true,
+				Description:         "The full set of tags on the Slack integration, including both tags and any merged in from the provider's default_tags.",
+				MarkdownDescription: "The full set of tags on the Slack integration, including both `tags` and any merged in from the provider's `default_tags`.",
+			},
 		},
 	}
 }
@@ -80,4 +95,6 @@ type SlackIntegrationModel struct {
 	Name        types.String   `tfsdk:"name"`
 	WorkspaceId types.String   `tfsdk:"workspace_id"`
 	Channels    []ChannelModel `tfsdk:"channels"`
+	Tags        types.Map      `tfsdk:"tags"`
+	TagsAll     types.Map      `tfsdk:"tags_all"`
 }

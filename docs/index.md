@@ -31,7 +31,10 @@ provider "bronto" {
 
   # Optional: merged into every taggable resource's own tags (bronto_user,
   # bronto_dashboard, bronto_widget), with each resource's own tags winning
-  # on key conflicts.
+  # on key conflicts. managed_by = "terraform" here is just a convention to
+  # flag resources this provider manages - it applies equally whether you
+  # run this with Terraform or OpenTofu, since both execute this same
+  # provider binary unchanged.
   default_tags = {
     managed_by = "terraform"
   }
@@ -68,4 +71,4 @@ resource "bronto_user" "example" {
 
 ### Optional
 
-- `default_tags` (Map of String) Tags merged into every taggable resource (`bronto_user`, `bronto_dashboard`, `bronto_widget`), with each resource's own `tags` winning on key conflicts. Applied only when a resource is created or updated - changing `default_tags` doesn't retroactively resync tags on resources that aren't otherwise being changed.
+- `default_tags` (Map of String) Tags merged into every taggable resource (`bronto_user`, `bronto_dashboard`, `bronto_widget`, `bronto_monitor`, `bronto_webhook_integration`, `bronto_slack_integration`), with each resource's own `tags` winning on key conflicts. Applied only when a resource is created or updated - changing `default_tags` doesn't retroactively resync tags on resources that aren't otherwise being changed. A common convention is to add `managed_by = "terraform"` here to flag every resource this provider manages; this works identically under [OpenTofu](https://opentofu.org), which runs this same provider unchanged.

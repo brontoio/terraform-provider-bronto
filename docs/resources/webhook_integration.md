@@ -30,6 +30,10 @@ resource "bronto_webhook_integration" "on_call" {
     message = "$description"
     details = { id = "$alert_id" }
   })
+
+  tags = {
+    team = "observability"
+  }
 }
 ```
 
@@ -45,10 +49,12 @@ resource "bronto_webhook_integration" "on_call" {
 
 - `custom_headers` (Map of String, Sensitive) Custom headers to include in the webhook request, e.g. an API key or auth token. Marked sensitive since header values commonly carry credentials, even though the API doesn't flag this field as such.
 - `payload` (String) The desired payload structure, typically JSON, as a plain string template. May reference alert fields with `$variable` placeholders, e.g. `$title`, `$description`, `$alert_id`.
+- `tags` (Map of String) A map of key value pairs associated with the webhook integration, not including any inherited from the provider's `default_tags` - see `tags_all` for the full set. Applied via individual tag API calls, not the webhook integration's own create/update endpoints, so each changed key costs a separate request.
 
 ### Read-Only
 
 - `id` (String) The unique identifier for the webhook integration
+- `tags_all` (Map of String) The full set of tags on the webhook integration, including both `tags` and any merged in from the provider's `default_tags`.
 
 ## Import
 

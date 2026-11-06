@@ -125,8 +125,9 @@ func diffTags(current, desired map[string]string) (toCreate, toUpdate map[string
 // desired (as configured), issuing one Create/Update/Delete /tags call per
 // changed key. There is no bulk "replace all tags" endpoint, so this is the
 // only way to apply a tag map - shared by every resource that supports
-// tags (dashboards, widgets, users; metric definitions do not support tags
-// at all, per the API's Entity.type enum).
+// tags (dashboards, widgets, users, monitors, webhook and Slack
+// integrations; metric definitions do not support tags at all, per the
+// API's Entity.type enum).
 func (c *Client) SyncTags(ctx context.Context, entityType, entityId string, current, desired map[string]string) error {
 	toCreate, toUpdate, toDelete := diffTags(current, desired)
 
