@@ -19,7 +19,7 @@ resource "bronto_widget" "errors_by_service" {
   type        = "treemap"
 
   # A widget can include either sources or widget_ids, but not both. Sources
-  # can reference a metric definition, a monitor, or an SLO.
+  # can reference a metric definition, a monitor, an SLO, or a saved search.
   sources = [
     {
       type = "metric"
@@ -27,10 +27,23 @@ resource "bronto_widget" "errors_by_service" {
     }
   ]
 
+  # Optional: each field applies only to some widget types and is ignored by
+  # the others.
+  display = {
+    normalize_data = false
+    stacked_bars   = false
+    colour_name    = "purple"
+  }
+
+  # Optional: ignored by widget types that don't sort (e.g. top-list, table).
+  sort = {
+    by        = "value"
+    direction = "desc"
+  }
+
   # Optional: arbitrary widget-type-specific configuration.
   aux = jsonencode({
-    color_name = "Purple"
-    mode       = "sql"
+    mode = "sql"
   })
 
   # Optional: each key change costs a separate API call (there's no bulk tag
@@ -60,7 +73,9 @@ resource "bronto_widget" "overview_group" {
 
 - `aux` (String) Additional widget configuration, as a JSON-encoded string (e.g. `jsonencode({...})`)
 - `description` (String) The widget description
-- `sources` (Attributes List) The metrics, monitors, and SLOs that supply data to the widget, in display order. A widget can include either `sources` or `widget_ids`, but not both. (see [below for nested schema](#nestedatt--sources))
+- `display` (Attributes) Display options. Each field applies only to some widget types and is ignored by the others, so setting one on a widget type that does not use it has no effect. (see [below for nested schema](#nestedatt--display))
+- `sort` (Attributes) How the widget orders its series or rows, for widget types that sort (e.g. `top-list`, `table`). Ignored by widget types that don't sort. (see [below for nested schema](#nestedatt--sort))
+- `sources` (Attributes List) The metrics, monitors, SLOs, and saved searches that supply data to the widget, in display order. A widget can include either `sources` or `widget_ids`, but not both. (see [below for nested schema](#nestedatt--sources))
 - `tags` (Map of String) A map of key value pairs associated with the widget, not including any inherited from the provider's `default_tags` - see `tags_all` for the full set. Applied via individual tag API calls, not the widget's own create/update endpoints, so each changed key costs a separate request.
 - `widget_ids` (Set of String) The IDs of other widgets included in this (composite) widget. A widget can include either `sources` or `widget_ids`, but not both.
 
@@ -69,13 +84,32 @@ resource "bronto_widget" "overview_group" {
 - `id` (String) The unique identifier for the widget
 - `tags_all` (Map of String) The full set of tags on the widget, including both `tags` and any merged in from the provider's `default_tags`.
 
+<a id="nestedatt--display"></a>
+### Nested Schema for `display`
+
+Optional:
+
+- `colour_name` (String) A named colour for the widget, e.g. the colour of a `group` widget.
+- `normalize_data` (Boolean) Rescale each series to a common range so that their shapes can be compared.
+- `stacked_bars` (Boolean) Stack bars on top of each other rather than drawing them side by side.
+
+
+<a id="nestedatt--sort"></a>
+### Nested Schema for `sort`
+
+Optional:
+
+- `by` (String) Order by each series' or row's value, or by its name. Defaults to `value` when not set.
+- `direction` (String) The direction to sort in. Defaults to `desc` when not set.
+
+
 <a id="nestedatt--sources"></a>
 ### Nested Schema for `sources`
 
 Required:
 
-- `id` (String) The unique identifier of the referenced metric definition, monitor, or SLO.
-- `type` (String) The kind of entity referenced: `metric`, `monitor`, or `slo`.
+- `id` (String) The unique identifier of the referenced metric definition, monitor, SLO, or saved search.
+- `type` (String) The kind of entity referenced: `metric`, `monitor`, `slo`, or `saved_search`.
 
 ## Import
 
