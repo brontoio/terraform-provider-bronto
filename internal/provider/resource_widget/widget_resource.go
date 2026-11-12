@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	bronto "terraform-provider-bronto/internal"
 	tfutil "terraform-provider-bronto/internal/provider/tfutil"
 )
@@ -273,6 +274,12 @@ func encodeWidgetRequest(ctx context.Context, data WidgetModel) ([]byte, diag.Di
 	widgetIds, widgetDiags := extractStringSet(ctx, data.WidgetIds)
 	diags.Append(widgetDiags...)
 
+	display, displayDiags := extractDisplay(ctx, data.Display)
+	diags.Append(displayDiags...)
+
+	sort, sortDiags := extractSort(ctx, data.Sort)
+	diags.Append(sortDiags...)
+
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -283,6 +290,8 @@ func encodeWidgetRequest(ctx context.Context, data WidgetModel) ([]byte, diag.Di
 		Type:        data.Type.ValueString(),
 		Sources:     sources,
 		WidgetIds:   widgetIds,
+		Display:     display,
+		Sort:        sort,
 	}
 	if !data.Aux.IsNull() && !data.Aux.IsUnknown() {
 		reqBody.Aux = json.RawMessage(data.Aux.ValueString())
@@ -332,7 +341,118 @@ func populateModel(ctx context.Context, data *WidgetModel, w bronto.Widget) diag
 	diags.Append(widgetDiags...)
 	data.WidgetIds = widgetIdsVal
 
+	displayVal, displayDiags := convertDisplay(ctx, w.Display)
+	diags.Append(displayDiags...)
+	data.Display = displayVal
+
+	sortVal, sortDiags := convertSort(ctx, w.Sort)
+	diags.Append(sortDiags...)
+	data.Sort = sortVal
+
 	return diags
+}
+
+func extractDisplay(ctx context.Context, obj types.Object) (*bronto.WidgetDisplay, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	if obj.IsNull() || obj.IsUnknown() {
+		return nil, diags
+	}
+
+	var model DisplayModel
+	diags.Append(obj.As(ctx, &model, basetypes.ObjectAsOptions{})...)
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	display := &bronto.WidgetDisplay{}
+	if !model.NormalizeData.IsNull() && !model.NormalizeData.IsUnknown() {
+		v := model.NormalizeData.ValueBool()
+		display.NormalizeData = &v
+	}
+	if !model.StackedBars.IsNull() && !model.StackedBars.IsUnknown() {
+		v := model.StackedBars.ValueBool()
+		display.StackedBars = &v
+	}
+	if !model.ColourName.IsNull() && !model.ColourName.IsUnknown() {
+		display.ColourName = model.ColourName.ValueString()
+	}
+
+	return display, diags
+}
+
+// convertDisplay converts the API's display object into the Terraform
+// model. A field the API omits (meaning "not set", not defaulted
+// server-side) maps to null here too, matching reality rather than
+// inventing a client-side default.
+func convertDisplay(ctx context.Context, d bronto.WidgetDisplay) (types.Object, diag.Diagnostics) {
+	model := DisplayModel{}
+
+	if d.NormalizeData == nil {
+		model.NormalizeData = types.BoolNull()
+	} else {
+		model.NormalizeData = types.BoolValue(*d.NormalizeData)
+	}
+
+	if d.StackedBars == nil {
+		model.StackedBars = types.BoolNull()
+	} else {
+		model.StackedBars = types.BoolValue(*d.StackedBars)
+	}
+
+	if d.ColourName == "" {
+		model.ColourName = types.StringNull()
+	} else {
+		model.ColourName = types.StringValue(d.ColourName)
+	}
+
+	return types.ObjectValueFrom(ctx, displayObjectType.AttrTypes, model)
+}
+
+func extractSort(ctx context.Context, obj types.Object) (*bronto.WidgetSort, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	if obj.IsNull() || obj.IsUnknown() {
+		return nil, diags
+	}
+
+	var model SortModel
+	diags.Append(obj.As(ctx, &model, basetypes.ObjectAsOptions{})...)
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	sort := &bronto.WidgetSort{}
+	if !model.By.IsNull() && !model.By.IsUnknown() {
+		sort.By = model.By.ValueString()
+	}
+	if !model.Direction.IsNull() && !model.Direction.IsUnknown() {
+		sort.Direction = model.Direction.ValueString()
+	}
+
+	return sort, diags
+}
+
+// convertSort converts the API's sort object into the Terraform model. "by"
+// and "direction" are left null when the API omits them, same reasoning as
+// convertDisplay - "value"/"desc" are documented as the effective default
+// for display purposes only, not written into the stored value.
+func convertSort(ctx context.Context, s bronto.WidgetSort) (types.Object, diag.Diagnostics) {
+	model := SortModel{}
+
+	if s.By == "" {
+		model.By = types.StringNull()
+	} else {
+		model.By = types.StringValue(s.By)
+	}
+
+	if s.Direction == "" {
+		model.Direction = types.StringNull()
+	} else {
+		model.Direction = types.StringValue(s.Direction)
+	}
+
+	return types.ObjectValueFrom(ctx, sortObjectType.AttrTypes, model)
 }
 
 func extractSources(ctx context.Context, list types.List) ([]bronto.WidgetSource, diag.Diagnostics) {

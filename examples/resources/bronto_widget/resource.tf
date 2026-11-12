@@ -4,7 +4,7 @@ resource "bronto_widget" "errors_by_service" {
   type        = "treemap"
 
   # A widget can include either sources or widget_ids, but not both. Sources
-  # can reference a metric definition, a monitor, or an SLO.
+  # can reference a metric definition, a monitor, an SLO, or a saved search.
   sources = [
     {
       type = "metric"
@@ -12,10 +12,23 @@ resource "bronto_widget" "errors_by_service" {
     }
   ]
 
+  # Optional: each field applies only to some widget types and is ignored by
+  # the others.
+  display = {
+    normalize_data = false
+    stacked_bars   = false
+    colour_name    = "purple"
+  }
+
+  # Optional: ignored by widget types that don't sort (e.g. top-list, table).
+  sort = {
+    by        = "value"
+    direction = "desc"
+  }
+
   # Optional: arbitrary widget-type-specific configuration.
   aux = jsonencode({
-    color_name = "Purple"
-    mode       = "sql"
+    mode = "sql"
   })
 
   # Optional: each key change costs a separate API call (there's no bulk tag

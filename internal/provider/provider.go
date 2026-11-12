@@ -8,9 +8,13 @@ import (
 	"terraform-provider-bronto/internal/provider/datasource_slack_workspaces"
 	"terraform-provider-bronto/internal/provider/datasource_user"
 	"terraform-provider-bronto/internal/provider/resource_dashboard"
+	"terraform-provider-bronto/internal/provider/resource_group"
 	"terraform-provider-bronto/internal/provider/resource_metric_definition"
 	"terraform-provider-bronto/internal/provider/resource_monitor"
+	"terraform-provider-bronto/internal/provider/resource_provider_integration"
 	"terraform-provider-bronto/internal/provider/resource_slack_integration"
+	"terraform-provider-bronto/internal/provider/resource_sso_idp"
+	"terraform-provider-bronto/internal/provider/resource_sso_mappings"
 	"terraform-provider-bronto/internal/provider/resource_user"
 	"terraform-provider-bronto/internal/provider/resource_webhook_integration"
 	"terraform-provider-bronto/internal/provider/resource_widget"
@@ -73,10 +77,10 @@ func (p *brontoProvider) Schema(ctx context.Context, req provider.SchemaRequest,
 			"default_tags": schema.MapAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
-				Description: "Tags merged into every taggable resource (bronto_user, bronto_dashboard, bronto_widget, bronto_monitor, bronto_webhook_integration, bronto_slack_integration), with each resource's own tags winning on key conflicts. " +
+				Description: "Tags merged into every taggable resource (bronto_user, bronto_dashboard, bronto_widget, bronto_monitor, bronto_webhook_integration, bronto_slack_integration, bronto_provider_integration), with each resource's own tags winning on key conflicts. " +
 					"Applied only when a resource is created or updated - changing default_tags doesn't retroactively resync tags on resources that aren't otherwise being changed. " +
 					"A common convention is to add managed_by = \"terraform\" here to flag every resource this provider manages; this works identically under OpenTofu, which runs this same provider unchanged.",
-				MarkdownDescription: "Tags merged into every taggable resource (`bronto_user`, `bronto_dashboard`, `bronto_widget`, `bronto_monitor`, `bronto_webhook_integration`, `bronto_slack_integration`), with each resource's own `tags` winning on key conflicts. " +
+				MarkdownDescription: "Tags merged into every taggable resource (`bronto_user`, `bronto_dashboard`, `bronto_widget`, `bronto_monitor`, `bronto_webhook_integration`, `bronto_slack_integration`, `bronto_provider_integration`), with each resource's own `tags` winning on key conflicts. " +
 					"Applied only when a resource is created or updated - changing `default_tags` doesn't retroactively resync tags on resources that aren't otherwise being changed. " +
 					"A common convention is to add `managed_by = \"terraform\"` here to flag every resource this provider manages; this works identically under [OpenTofu](https://opentofu.org), which runs this same provider unchanged.",
 			},
@@ -210,5 +214,9 @@ func (p *brontoProvider) Resources(ctx context.Context) []func() resource.Resour
 		resource_slack_integration.NewSlackIntegrationResource,
 		resource_webhook_integration.NewWebhookIntegrationResource,
 		resource_monitor.NewMonitorResource,
+		resource_group.NewGroupResource,
+		resource_sso_idp.NewSsoIdpResource,
+		resource_sso_mappings.NewSsoMappingsResource,
+		resource_provider_integration.NewProviderIntegrationResource,
 	}
 }
